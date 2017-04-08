@@ -99,7 +99,7 @@ $(document).ready(function(){
             var url = URL.createObjectURL(blob);
             
             // output the images
-            $('#output').append("<img src='"+url+"' class='imgUrl'/><br>");
+            $('#output').append("<img src='"+url+"' class='imgUrl' width='100%'/><br>");
         });
         
     }
