@@ -89,8 +89,8 @@ $(document).ready(function(){
             var blob = new Blob([data], {type: getMIME(entry.name)});
             var url = URL.createObjectURL(blob);
             
-            // output the url
-            $('#output').append("#File: <a href='"+url+"' target='_blank' class='imgUrl'>"+entry.name+"</a><br>");
+            // output the images
+            $('#output').append("<img src='"+url+"' class='imgUrl'/><br>");
         });
         
     }
@@ -99,7 +99,7 @@ $(document).ready(function(){
     function clearBlobs()
     {
         $('.imgUrl').each(function(){
-            URL.revokeObjectURL($(this).attr('href'));
+            URL.revokeObjectURL($(this).attr('src'));
         });
     }
     
