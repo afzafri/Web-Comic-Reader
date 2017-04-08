@@ -4,6 +4,9 @@ $(document).ready(function(){
 	loadArchiveFormats(['rar', 'zip', 'tar']);
     
     $("#fileup").change(function(){
+        // clear previous output data
+        $('#output').empty();
+        
         var file = $(this)[0].files[0];
         
         // Open the file as an archive
