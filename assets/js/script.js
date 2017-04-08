@@ -21,6 +21,7 @@ $(document).ready(function(){
         
     });
     
+    // function for reading the contents of the archive
     function readContents(archive)
     {
         var entries = archive.entries;
@@ -28,8 +29,21 @@ $(document).ready(function(){
         // iterate through all the contents
         for(var i=0;i<entries.length;i++)
         {
-            $('#output').append("#"+(i+1)+" File: "+entries[i].name+"<br>");
+            filename = entries[i].name;
+            
+            // check, only output file, not folder
+            if(getExt(filename))
+            {
+                $('#output').append("#"+(i+1)+" File: "+filename+"<br>");
+            }
         }
+    }
+    
+    // function to determine if content is file or folder. return true if a file
+    function getExt(filename)
+    {
+        var ext = filename.split('.').pop();
+        return (ext == filename) ? false : true;
     }
     
 });
