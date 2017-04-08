@@ -4,6 +4,9 @@ $(document).ready(function(){
 	loadArchiveFormats(['rar', 'zip', 'tar']);
     
     $("#fileup").change(function(){
+        // clear previous blobs
+        clearBlobs();
+        
         // clear previous output data
         $('#output').empty();
         
@@ -59,9 +62,17 @@ $(document).ready(function(){
             var url = URL.createObjectURL(blob);
             
             // output the url
-            $('#output').append("#File: <a href='"+url+"' target='_blank'>"+entry.name+"</a><br>");
+            $('#output').append("#File: <a href='"+url+"' target='_blank' class='imgUrl'>"+entry.name+"</a><br>");
         });
         
+    }
+    
+    // function to clear all previous blobs, free up memory
+    function clearBlobs()
+    {
+        $('.imgUrl').each(function(){
+            URL.revokeObjectURL($(this).attr('href'));
+        });
     }
     
 });
