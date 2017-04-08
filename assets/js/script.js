@@ -34,6 +34,8 @@ $(document).ready(function(){
             // check, only output file, not folder
             if(getExt(filename))
             {
+                // call function
+                createBlobs(entries[i]);
                 $('#output').append("#"+(i+1)+" File: "+filename+"<br>");
             }
         }
@@ -44,6 +46,18 @@ $(document).ready(function(){
     {
         var ext = filename.split('.').pop();
         return (ext == filename) ? false : true;
+    }
+    
+    // function to convert the archive contents into blobs, and return URL
+    function createBlobs(entry, callback)
+    {
+        entry.readData(function(data, err) {
+            // Convert the data into an Object URL
+            var blob = new Blob([data], {type: 'image/jpeg'});
+            url = URL.createObjectURL(blob);
+            console.log(url);
+        });
+        
     }
     
 });
