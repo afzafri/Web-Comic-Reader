@@ -52,12 +52,41 @@ $(document).ready(function(){
         return (ext == filename) ? '' : ext;
     }
     
+    // function to return MIME type based on the file extension
+    // NOTE: THIS FUNCTION IS NOT EFFICIENT
+    function getMIME(filename)
+    {
+        var ext = getExt(filename).toLowerCase();
+        
+        switch(ext)
+        {
+            case 'jpg':
+            case 'jpeg':
+                return 'image/jpeg';
+                break;
+            case 'png':
+                return 'image/png';
+                break;
+            case 'gif':
+                return 'image/gif';
+                break;
+            case 'bmp':
+                return 'image/bmp';
+                break;
+            case 'webp':
+                return 'image/webp';
+                break;
+            default:
+                return 'image/jpeg';
+        }
+    }
+    
     // function to convert the archive contents into blobs, and return URL
     function createBlobs(entry)
     {
         entry.readData(function(data, err) {
             // Convert the data into an Object URL
-            var blob = new Blob([data], {type: 'image/jpeg'});
+            var blob = new Blob([data], {type: getMIME(entry.name)});
             var url = URL.createObjectURL(blob);
             
             // output the url
