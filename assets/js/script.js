@@ -10,7 +10,8 @@ $(document).ready(function(){
         archiveOpenFile(file, function(archive, err) {
             if (archive) 
             {
-               console.log(archive);
+                $('#output').append("<b>"+archive.file_name+"</b><br>");
+                readContents(archive);
             } 
             else 
             {
@@ -19,5 +20,16 @@ $(document).ready(function(){
         });
         
     });
+    
+    function readContents(archive)
+    {
+        var entries = archive.entries;
+        
+        // iterate through all the contents
+        for(var i=0;i<entries.length;i++)
+        {
+            $('#output').append("#"+(i+1)+" File: "+entries[i].name+"<br>");
+        }
+    }
     
 });
