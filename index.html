@@ -2,13 +2,19 @@
     <head>
         <!-- Tell the browser to be responsive to screen width -->
 		<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <link href="./assets/css/styles.css" rel="stylesheet">
         <title>Web Based Comic Book Reader</title>
     </head>
     
     <body>
-        <input type="file" name="fileup" id="fileup">
+        <div class="se-pre-con"></div> <!-- loading spinner -->
         
-        <div id="output"></div>
+        <input type="file" name="fileup" id="fileup">
+        <br>
+        
+        <center>
+            <div id="output"></div>
+        </center>
         
         <script src="./assets/js/jquery-3.2.0.min.js"></script>
         <script src="./assets/js/uncompress/uncompress.js"></script>

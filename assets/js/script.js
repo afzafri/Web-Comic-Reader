@@ -4,6 +4,9 @@ $(document).ready(function(){
 	loadArchiveFormats(['rar', 'zip', 'tar']);
     
     $("#fileup").change(function(){
+        // show loading
+		$('.se-pre-con').fadeIn('slow');
+        
         // clear previous blobs
         clearBlobs();
         
@@ -18,10 +21,16 @@ $(document).ready(function(){
             {
                 $('#output').append("<b>"+archive.file_name+"</b><br>");
                 readContents(archive);
+                
+                // hide loading
+                $('.se-pre-con').fadeOut('slow');
             } 
             else 
             {
                 console.log(err);
+                
+                // hide loading
+                $('.se-pre-con').fadeOut('slow');
             }
         });
         
