@@ -34,9 +34,8 @@ $(document).ready(function(){
             // check, only output file, not folder
             if(getExt(filename))
             {
-                // call function
+                // call function to create blob and url. allow us to read/view the contents
                 createBlobs(entries[i]);
-                $('#output').append("#"+(i+1)+" File: "+filename+"<br>");
             }
         }
     }
@@ -49,13 +48,15 @@ $(document).ready(function(){
     }
     
     // function to convert the archive contents into blobs, and return URL
-    function createBlobs(entry, callback)
+    function createBlobs(entry)
     {
         entry.readData(function(data, err) {
             // Convert the data into an Object URL
             var blob = new Blob([data], {type: 'image/jpeg'});
-            url = URL.createObjectURL(blob);
-            console.log(url);
+            var url = URL.createObjectURL(blob);
+            
+            // output the url
+            $('#output').append("#File: <a href='"+url+"' target='_blank'>"+entry.name+"</a><br>");
         });
         
     }
