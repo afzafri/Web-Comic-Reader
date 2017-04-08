@@ -4,7 +4,10 @@ $(document).ready(function(){
 	loadArchiveFormats(['rar', 'zip', 'tar']);
     
     $("#fileup").change(function(){
-        alert("test"); 
+        var file = $(this)[0].files[0];
+        
+        console.log(file);
+        
     });
     
 });
