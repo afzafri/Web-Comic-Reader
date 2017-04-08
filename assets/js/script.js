@@ -36,9 +36,8 @@ $(document).ready(function(){
         for(var i=0;i<entries.length;i++)
         {
             filename = entries[i].name;
-            
             // check, only output file, not folder
-            if(getExt(filename))
+            if(getExt(filename) != '')
             {
                 // call function to create blob and url. allow us to read/view the contents
                 createBlobs(entries[i]);
@@ -46,11 +45,11 @@ $(document).ready(function(){
         }
     }
     
-    // function to determine if content is file or folder. return true if a file
+    // function to return file extension based on file name
     function getExt(filename)
     {
         var ext = filename.split('.').pop();
-        return (ext == filename) ? false : true;
+        return (ext == filename) ? '' : ext;
     }
     
     // function to convert the archive contents into blobs, and return URL
