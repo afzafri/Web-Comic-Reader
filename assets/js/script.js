@@ -3,9 +3,10 @@ $(document).ready(function(){
     // Load all the archive formats
 	loadArchiveFormats(['rar', 'zip', 'tar']);
     
-    $("#initgal").click(function(){
+    $('#initgal').click(function(){
         // initialize gallery
         $('#output').lightGallery(); 
+        alert("Gallery initialized");
     });
     
     $("#fileup").change(function(){
