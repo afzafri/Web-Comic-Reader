@@ -3,6 +3,11 @@ $(document).ready(function(){
     // Load all the archive formats
 	loadArchiveFormats(['rar', 'zip', 'tar']);
     
+    $("#initgal").click(function(){
+        // initialize gallery
+        $('#output').lightGallery(); 
+    });
+    
     $("#fileup").change(function(){
         // show loading
 		$('.se-pre-con').fadeIn('slow');
@@ -22,9 +27,6 @@ $(document).ready(function(){
                 $('#output').append("<b>"+archive.file_name+"</b><br>");
                 readContents(archive);
                 
-                // initialize gallery
-                $('#output').lightGallery();
-                
                 // hide loading
                 $('.se-pre-con').fadeOut('slow');
             } 
@@ -36,7 +38,6 @@ $(document).ready(function(){
                 $('.se-pre-con').fadeOut('slow');
             }
         });
-        
     });
     
     // function for reading the contents of the archive
