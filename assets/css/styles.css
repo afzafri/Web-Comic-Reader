@@ -8,3 +8,9 @@
     background: url(../images/hourglass.svg) center no-repeat rgba(255,255,255,.6);
     display: none;
 }
+
+img {
+    float: center;
+    height: 200px;
+    padding: 10px;
+}
