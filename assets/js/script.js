@@ -22,6 +22,9 @@ $(document).ready(function(){
                 $('#output').append("<b>"+archive.file_name+"</b><br>");
                 readContents(archive);
                 
+                // initialize gallery
+                $('#output').lightGallery();
+                
                 // hide loading
                 $('.se-pre-con').fadeOut('slow');
             } 
@@ -99,7 +102,7 @@ $(document).ready(function(){
             var url = URL.createObjectURL(blob);
             
             // output the images
-            $('#output').append("<img src='"+url+"' class='imgUrl' width='100%'/><br>");
+            $('#output').append("<a href='"+url+"'><img src='"+url+"'/></a>");
         });
         
     }
