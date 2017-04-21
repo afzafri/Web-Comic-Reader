@@ -3,10 +3,10 @@ $(document).ready(function(){
     // Load all the archive formats
 	loadArchiveFormats(['rar', 'zip', 'tar']);
     
-    $('#initgal').click(function(){
+    $(document).on('click','#comicImg',function(){
+        event.preventDefault();
         // initialize gallery
-        $('#output').lightGallery(); 
-        alert("Gallery initialized");
+        $('#output').lightGallery();
     });
     
     $("#fileup").change(function(){
@@ -109,7 +109,7 @@ $(document).ready(function(){
             var url = URL.createObjectURL(blob);
             
             // output the images
-            $('#output').append("<a href='"+url+"'><img src='"+url+"' class='imgUrl'/></a>");
+            $('#output').append("<a href='"+url+"' id='comicImg'><img src='"+url+"' class='imgUrl'/></a>");
         });
         
     }
