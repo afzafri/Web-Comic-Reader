@@ -14,6 +14,7 @@ $(document).ready(function(){
                 selector: 'a',
                 zoom: true,
                 fullScreen: true,
+                download: false,
             });
             $(this).click();
         });
