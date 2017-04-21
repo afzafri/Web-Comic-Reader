@@ -1,5 +1,6 @@
 # Web Comic Reader
-Web Based cbr/cbz/cbt comic book reader. Written in HTML5 and Javascript (with jQuery)
+Web Based cbr/cbz/cbt comic book reader. Written in HTML5 and Javascript (with jQuery) <br>
+Demo: https://afzafri.github.io/Web-Comic-Reader/
 
 # Credit
 - Uncompress.js: https://github.com/workhorsy/uncompress.js
