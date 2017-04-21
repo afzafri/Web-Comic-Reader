@@ -11,7 +11,8 @@ $(document).ready(function(){
             event.preventDefault();
             // initialize gallery
             $('#output').lightGallery({
-                selector: 'a'
+                selector: 'a',
+                zoom: true,
             });
             $(this).click();
         });
