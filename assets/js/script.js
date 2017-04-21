@@ -13,6 +13,7 @@ $(document).ready(function(){
             $('#output').lightGallery({
                 selector: 'a',
                 zoom: true,
+                fullScreen: true,
             });
             $(this).click();
         });
