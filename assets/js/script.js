@@ -130,34 +130,4 @@ $(document).ready(function(){
         });
     }
     
-    // toggle full screen
-    $('#btnFullscreen').click(function(){
-       //toggleFullScreen(document.body); 
-        toggleFullScreen();
-    });
-    
-    
-    // function for fullscreen
-    // thanks http://stackoverflow.com/a/10627148/5784900
-    function toggleFullScreen() {
-      if ((document.fullScreenElement && document.fullScreenElement !== null) ||    
-       (!document.mozFullScreen && !document.webkitIsFullScreen)) {
-        if (document.documentElement.requestFullScreen) {  
-          document.documentElement.requestFullScreen();  
-        } else if (document.documentElement.mozRequestFullScreen) {  
-          document.documentElement.mozRequestFullScreen();  
-        } else if (document.documentElement.webkitRequestFullScreen) {  
-          document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);  
-        }  
-      } else {  
-        if (document.cancelFullScreen) {  
-          document.cancelFullScreen();  
-        } else if (document.mozCancelFullScreen) {  
-          document.mozCancelFullScreen();  
-        } else if (document.webkitCancelFullScreen) {  
-          document.webkitCancelFullScreen();  
-        }  
-      }  
-    }
-    
 });
