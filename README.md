@@ -5,3 +5,6 @@ Web Based cbr/cbz/cbt comic book reader. Written in HTML5 and Javascript (with j
 - Uncompress.js: https://github.com/workhorsy/uncompress.js
 - lightGallery: https://github.com/sachinchoolur/lightGallery
 - jQuery: https://jquery.com/
+
+# License
+This library is under ```MIT license```, please look at the LICENSE file
