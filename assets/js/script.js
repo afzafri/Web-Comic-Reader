@@ -13,6 +13,11 @@ $(document).ready(function(){
         // show loading
 		$('.se-pre-con').fadeIn('slow');
         
+        // destroy lightGallery
+        var $lg = $('#output');
+        $lg.lightGallery();
+        $lg.data('lightGallery').destroy(true);
+        
         // clear previous blobs
         clearBlobs();
         
