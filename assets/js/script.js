@@ -3,10 +3,12 @@ $(document).ready(function(){
     // Load all the archive formats
 	loadArchiveFormats(['rar', 'zip', 'tar']);
     
-    $(document).on('click','#comicImg',function(){
+    // init the gallery plugin, when there is a first click on a image
+    $(document).one('click','#comicImg',function(){
         event.preventDefault();
         // initialize gallery
         $('#output').lightGallery();
+        $(this).click();
     });
     
     $("#fileup").change(function(){
