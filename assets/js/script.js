@@ -10,7 +10,9 @@ $(document).ready(function(){
         $(document).one('click','#comicImg',function(){
             event.preventDefault();
             // initialize gallery
-            $('#output').lightGallery();
+            $('#output').lightGallery({
+                selector: 'a'
+            });
             $(this).click();
         });
         
