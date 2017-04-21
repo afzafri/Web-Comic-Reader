@@ -1,9 +1,14 @@
 $(document).ready(function(){
+    
+    // hide the output box first
+    $('#output').hide();
    
     // Load all the archive formats
 	loadArchiveFormats(['rar', 'zip', 'tar']);
     
     $("#fileup").change(function(){
+        
+        $('#output').hide();
         
         // init the gallery plugin, when there is a first click on a image
         // re-bind this function when opening new comic
@@ -45,6 +50,9 @@ $(document).ready(function(){
                 
                 // hide loading
                 $('.se-pre-con').fadeOut('slow');
+                
+                // show output box
+                $('#output').fadeIn('slow');
             } 
             else 
             {
@@ -52,6 +60,9 @@ $(document).ready(function(){
                 
                 // hide loading
                 $('.se-pre-con').fadeOut('slow');
+                
+                // show output box
+                $('#output').fadeIn('slow');
             }
         });
     });
