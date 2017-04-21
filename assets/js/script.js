@@ -48,7 +48,7 @@ $(document).ready(function(){
             } 
             else 
             {
-                console.log(err);
+                $('#output').append("<font color='red'>"+err+"</font><br>");
                 
                 // hide loading
                 $('.se-pre-con').fadeOut('slow');
