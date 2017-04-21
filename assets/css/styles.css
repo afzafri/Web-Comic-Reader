@@ -1,3 +1,7 @@
+body {
+    background-color: #EEEEEE;
+}
+
 .se-pre-con {
     position: fixed;
     left: 0px;
@@ -9,10 +13,24 @@
     display: none;
 }
 
+fieldset {
+    display: inline-block;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.3);    
+}
+
+#output {
+    width: 80%;
+    margin: 0 auto;
+    padding: 5px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.3);
+}
+
 img {
     float: center;
     height: 200px;
-    padding: 10px;
+    padding: 5px;
 }
 
 img:hover {
