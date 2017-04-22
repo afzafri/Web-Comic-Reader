@@ -45,7 +45,7 @@ $(document).ready(function(){
         archiveOpenFile(file, function(archive, err) {
             if (archive) 
             {
-                $('#output').append("<b>"+archive.file_name+"</b><br>");
+                $('#output').append("<b>"+archive.file_name+"</b><br><i>Click on the image to enlarge</i><br><br>");
                 readContents(archive);
                 
                 // hide loading
