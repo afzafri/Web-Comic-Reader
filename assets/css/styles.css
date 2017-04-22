@@ -37,3 +37,14 @@ fieldset {
     -webkit-transform: scale(1.1);
 	transform: scale(1.1);
 }
+
+/* for mobile */
+@media only screen
+and (min-device-width : 320px)
+and (max-device-width : 480px) {
+    .imgUrl {
+        float: center;
+        height: 120px;
+        padding: 5px;
+    }
+}
