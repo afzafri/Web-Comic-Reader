@@ -9,14 +9,14 @@ body {
     width: 100%;
     height: 100%;
     z-index: 9999;
-    background: url(../images/hourglass.svg) center no-repeat rgba(255,255,255,.6);
+    background: url(../img/hourglass.svg) center no-repeat rgba(255,255,255,.6);
     display: none;
 }
 
 fieldset {
     display: inline-block;
     background: #fff;
-    box-shadow: 0 1px 2px rgba(0,0,0,.3);    
+    box-shadow: 0 1px 2px rgba(0,0,0,.3);
 }
 
 #output {
