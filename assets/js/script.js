@@ -7,61 +7,65 @@ $(document).ready(function(){
 	loadArchiveFormats(['rar', 'zip', 'tar']);
     
     $("#fileup").change(function(){
-        
-        $('#output').hide();
-        
-        // init the gallery plugin, when there is a first click on a image
-        // re-bind this function when opening new comic
-        $(document).one('click','#comicImg',function(){
-            event.preventDefault();
-            // initialize gallery
-            $('#output').lightGallery({
-                selector: 'a',
-                zoom: true,
-                fullScreen: true,
-                download: false,
-                enableTouch: true,
-            });
-            $(this).click();
-        });
 		
-		// Update progress text
-		$('.progress-text').html("Reading 0/0 pages");
-		
-        // show loading
-		$('.se-pre-con').fadeIn('slow');
-        
-        // destroy lightGallery
-        var $lg = $('#output');
-        $lg.lightGallery();
-        $lg.data('lightGallery').destroy(true);
-        
-        // clear previous blobs
-        clearBlobs();
-        
-        // clear previous output data
-        $('#output').empty();
-        
-        var file = $(this)[0].files[0];
-        
-        // Open the file as an archive
-        archiveOpenFile(file, function(archive, err) {
-            if (archive) 
-            {
-                $('#output').append("<b>"+archive.file_name+"</b><br><i>Click on the image to enlarge</i><br><br>");
-                readContents(archive);
-            } 
-            else 
-            {
-                $('#output').append("<font color='red'>"+err+"</font><br>");
-                
-                // hide loading
-                $('.se-pre-con').fadeOut('slow');
-                
-                // show output box
-                $('#output').fadeIn('slow');
-            }
-        });
+		if($(this)[0].files.length == 0) {
+			$('#output').html("<font color='red'>Please choose a comic file</font><br>");
+		} else {
+			$('#output').hide();
+			
+			// init the gallery plugin, when there is a first click on a image
+			// re-bind this function when opening new comic
+			$(document).one('click','#comicImg',function(){
+				event.preventDefault();
+				// initialize gallery
+				$('#output').lightGallery({
+					selector: 'a',
+					zoom: true,
+					fullScreen: true,
+					download: false,
+					enableTouch: true,
+				});
+				$(this).click();
+			});
+			
+			// Update progress text
+			$('.progress-text').html("Reading 0/0 pages");
+			
+			// show loading
+			$('.se-pre-con').fadeIn('slow');
+			
+			// destroy lightGallery
+			var $lg = $('#output');
+			$lg.lightGallery();
+			$lg.data('lightGallery').destroy(true);
+			
+			// clear previous blobs
+			clearBlobs();
+			
+			// clear previous output data
+			$('#output').empty();
+			
+			var file = $(this)[0].files[0];
+			
+			// Open the file as an archive
+			archiveOpenFile(file, function(archive, err) {
+				if (archive) 
+				{
+					$('#output').append("<b>"+archive.file_name+"</b><br><i>Click on the image to enlarge</i><br><br>");
+					readContents(archive);
+				} 
+				else 
+				{
+					$('#output').append("<font color='red'>"+err+"</font><br>");
+					
+					// hide loading
+					$('.se-pre-con').fadeOut('slow');
+					
+					// show output box
+					$('#output').fadeIn('slow');
+				}
+			});
+		}
     });
     
     // function for reading the contents of the archive
