@@ -47,12 +47,6 @@ $(document).ready(function(){
             {
                 $('#output').append("<b>"+archive.file_name+"</b><br><i>Click on the image to enlarge</i><br><br>");
                 readContents(archive);
-                
-                // hide loading
-                $('.se-pre-con').fadeOut('slow');
-                
-                // show output box
-                $('#output').fadeIn('slow');
             } 
             else 
             {
@@ -74,16 +68,26 @@ $(document).ready(function(){
         
         // iterate through all the contents
         for(var i=0;i<entries.length;i++)
-        {
-            filename = entries[i].name;
-            // check, only output file, not folder
-            if(getExt(filename) != '')
-            {
-                // call function to create blob and url. allow us to read/view the contents
-                createBlobs(entries[i]);
-            }
+        {	
+			processEntries(entries, i, entries.length);
         }
     }
+	
+	// implement setTimout()
+	// This can minimize browser from overprocessing which can caused browser to be not responding
+	// simple way to mimics multi threading
+	function processEntries(entries, i, max)
+	{
+		setTimeout(function() {
+			filename = entries[i].name;
+			// check, only output file, not folder
+			if(getExt(filename) != '')
+			{
+				// call function to create blob and url. allow us to read/view the contents
+				createBlobs(entries[i], i, max);
+			}
+		}, i*700);
+	}
     
     // function to return file extension based on file name
     function getExt(filename)
@@ -122,7 +126,7 @@ $(document).ready(function(){
     }
     
     // function to convert the archive contents into blobs, and return URL
-    function createBlobs(entry)
+    function createBlobs(entry, i, max)
     {
         entry.readData(function(data, err) {
             // Convert the data into an Object URL
@@ -131,8 +135,16 @@ $(document).ready(function(){
             
             // output the images
             $('#output').append("<a href='"+url+"' id='comicImg'><img src='"+url+"' class='imgUrl'/></a>");
-        });
-        
+			
+			// only hide loading spinnder when done process all
+			if(i == (max-1)) {
+				// hide loading
+                $('.se-pre-con').fadeOut('slow');
+                
+                // show output box
+                $('#output').fadeIn('slow');
+			}
+        }); 
     }
     
     // function to clear all previous blobs, free up memory
