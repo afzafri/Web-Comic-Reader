@@ -1,4 +1,7 @@
 $(document).ready(function(){
+	
+	// current year
+	$('#currYear').html((new Date()).getFullYear());
    
     // Load all the archive formats
 	loadArchiveFormats(['rar', 'zip', 'tar']);
