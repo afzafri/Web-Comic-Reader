@@ -13,6 +13,15 @@ body {
     display: none;
 }
 
+.progress-text {
+	font-size: 26px;
+	width: 200px;
+	position: absolute;
+	top: calc(60% - 65px);
+	left: calc(50% - 105px);
+	text-align: center;
+}
+
 fieldset {
     display: inline-block;
     background: #fff;

@@ -24,7 +24,10 @@ $(document).ready(function(){
             });
             $(this).click();
         });
-        
+		
+		// Update progress text
+		$('.progress-text').html("Reading 0/0 pages");
+		
         // show loading
 		$('.se-pre-con').fadeIn('slow');
         
@@ -74,7 +77,7 @@ $(document).ready(function(){
     }
 	
 	// implement setTimout()
-	// This can minimize browser from overprocessing which can caused browser to be not responding
+	// This can minimize browser from overprocessing and end up freezing
 	// simple way to mimics multi threading
 	function processEntries(entries, i, max)
 	{
@@ -136,8 +139,13 @@ $(document).ready(function(){
             // output the images
             $('#output').append("<a href='"+url+"' id='comicImg'><img src='"+url+"' class='imgUrl'/></a>");
 			
+			// Update progress text
+			$('.progress-text').html("Reading "+i+"/"+max+" pages");
+			
 			// only hide loading spinnder when done process all
 			if(i == (max-1)) {
+				$('.progress-text').html("<font color='lime'>Completed!</font>");
+				
 				// hide loading
                 $('.se-pre-con').fadeOut('slow');
                 
