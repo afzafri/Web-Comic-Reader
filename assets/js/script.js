@@ -1,7 +1,4 @@
 $(document).ready(function(){
-    
-    // hide the output box first
-    $('#output').hide();
    
     // Load all the archive formats
 	loadArchiveFormats(['rar', 'zip', 'tar']);
