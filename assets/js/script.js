@@ -1,7 +1,20 @@
 $(document).ready(function(){
 
-	// current year
-	$('#currYear').html((new Date()).getFullYear());
+		// tab switch
+		$(document).on('click', '#tab', function() {
+			// reset all
+			$('#output').hide();
+			$('.tab-button').removeClass('active');
+			$('.option').hide();
+
+			// set active
+			var currentID = $(this).attr('tab');
+			$(this).addClass('active');
+			$('#'+currentID).show();
+		});
+
+		// current year
+		$('#currYear').html((new Date()).getFullYear());
 
     // Load all the archive formats
 		loadArchiveFormats(['rar', 'zip', 'tar']);

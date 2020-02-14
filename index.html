@@ -15,29 +15,36 @@
 
         <center>
             <fieldset>
-                <legend>Open Comic (Choose file from you computer)</legend>
-                <input type="file" name="fileup" id="fileup" accept=".cbr,.cbz,.cbt"><br>
-                <i>(cbr,cbz,cbt files only)</i>
+              <legend>
+                <button class="tab-button active" id="tab" tab="upload">Choose file from you computer</button>
+                <button class="tab-button" id="tab" tab="internal">Open file stored in the server</button>
+              </legend>
+              <br>
+
+              <div id="upload" class="option">
+                  <input type="file" name="fileup" id="fileup" accept=".cbr,.cbz,.cbt"><br>
+                  <i>(cbr,cbz,cbt files only)</i>
+              </div>
+
+              <div id="internal" class="option" style="display:none">
+                  <button id="readNow" comic_title="whizzkids_united.cbz">
+                    <img src='./comics/whizzkids_united_thumb.jpg' class='imgUrl'/>
+                    <br>Whizzkids United vs HIV
+                  </button>
+
+                  <button id="readNow" comic_title="zack_and_max.cbz">
+                    <img src='./comics/zack_and_max_thumb.jpg' class='imgUrl'/>
+                    <br>The Adventures of Zack &amp; Max
+                  </button>
+
+                  <button id="readNow" comic_title="comic_strip.cbz">
+                    <img src='./comics/comic_strip_thumb.jpg' class='imgUrl'/>
+                    <br>Alien Comic Strip
+                  </button>
+              </div>
+              <br>
             </fieldset>
-            <br><br>
 
-            <fieldset>
-                <legend>Open Comic (Open comic file stored in the server)</legend>
-                <button id="readNow" comic_title="whizzkids_united.cbz">
-                  <img src='./comics/whizzkids_united_thumb.jpg' class='imgUrl'/>
-                  <br>Whizzkids United vs HIV
-                </button>
-
-                <button id="readNow" comic_title="zack_and_max.cbz">
-                  <img src='./comics/zack_and_max_thumb.jpg' class='imgUrl'/>
-                  <br>The Adventures of Zack &amp; Max
-                </button>
-
-                <button id="readNow" comic_title="comic_strip.cbz">
-                  <img src='./comics/comic_strip_thumb.jpg' class='imgUrl'/>
-                  <br>Alien Comic Strip
-                </button>
-            </fieldset>
             <br><br>
 
             <!-- output comics images here -->

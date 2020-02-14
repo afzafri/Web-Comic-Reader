@@ -2,6 +2,22 @@ body {
     background-color: #EEEEEE;
 }
 
+.tab-button {
+  background-color: #e7e7e7; /* Gray */
+  color: black;
+  border: 1px solid grey;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+.tab-button.active {
+  background-color: #008CBA; /* Blue */
+  color: white;
+}
+
 .se-pre-con {
     position: fixed;
     left: 0px;
