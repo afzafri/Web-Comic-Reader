@@ -37,7 +37,7 @@ $(document).ready(function(){
 
 			var blob = null;
 			var xhr = new XMLHttpRequest();
-			xhr.open("GET", "/comics/"+comictitle); // make sure to put all the comics inside "comics" directory in the root directory
+			xhr.open("GET", "./comics/"+comictitle); // make sure to put all the comics inside "comics" directory in the root directory
 			xhr.responseType = "blob";
 			xhr.onload = function()
 			{
