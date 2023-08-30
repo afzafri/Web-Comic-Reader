@@ -20,14 +20,23 @@ $(document).ready(function(){
 	loadArchiveFormats(['rar', 'zip', 'tar']);
 
 	// ----- OPEN COMIC FROM COMPUTER -----
-	$("#fileup").change(function(){
-			if($(this)[0].files.length == 0) {
-				$('#output').html("<font color='red'>Please choose a comic file</font><br>");
-			} else {
-				var file = $(this)[0].files[0];
-				// open the comic
+	let dropzone = new Dropzone("div#dropzone", {
+		url: '#', // Dummy URL, not used since you're not uploading files
+		dictDefaultMessage: 'Click or Drop files here to upload <br> <i>(cbr,cbz,cbt files only)</i>',
+		autoProcessQueue: false, // Disable automatic uploads
+		disablePreviews: false,
+		createImageThumbnails: false,
+		acceptedFiles: '.cbr,.cbz,.cbt',
+		maxFiles: 1,
+		maxfilesexceeded: function(file) {
+			this.removeAllFiles();
+		},
+		init: function () {
+			this.on('addedfile', function (file) {
+				// Handle the dropped file here
 				openComic(file);
-			}
+			});
+		}
 	});
 
 	// ----- OPEN COMIC FROM INTERNAL FILE IN SERVER -----
@@ -96,12 +105,12 @@ $(document).ready(function(){
 			archiveOpenFile(file, function(archive, err) {
 				if (archive)
 				{
-					$('#output').append("<b>"+archive.file_name+"</b><br><i>Click on the image to enlarge</i><br><br>");
+					$('#output').html("<b>"+archive.file_name+"</b><br><i>Click on the image to enlarge</i><br><br>");
 					readContents(archive);
 				}
 				else
 				{
-					$('#output').append("<font color='red'>"+err+"</font><br>");
+					$('#output').html("<font color='red'>"+err+"</font><br>");
 
 					// hide loading
 					$('.se-pre-con').fadeOut('slow');

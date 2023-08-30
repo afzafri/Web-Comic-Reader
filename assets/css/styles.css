@@ -74,3 +74,31 @@ and (max-device-width : 480px) {
         padding: 5px;
     }
 }
+
+.dropzone {
+    border: 1px dashed rgba(0,0,0,.6) !important;
+}
+
+.dropzone:hover {
+    background-color: rgba(0,140,186, .4)
+}
+
+.dropzone .dz-preview {
+    margin: 0px !important;
+}
+
+.dropzone .dz-preview, .dropzone .dz-preview .dz-image {
+    width: 100% !important;
+}
+
+.dropzone .dz-preview.dz-file-preview .dz-image {
+    background: transparent !important;
+}
+
+.dz-filename {
+    font-size: 20px;
+}
+
+.dz-progress {
+    display: none;
+}
