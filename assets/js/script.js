@@ -31,9 +31,12 @@ $(document).ready(function(){
     });
 
 		// ----- OPEN COMIC FROM INTERNAL FILE IN SERVER -----
-		$(document).on('click', '#readNow', function() {
+		$(document).on('click', '.readNow', function() {
 			// get the comic file name
 			var comictitle = $(this).attr('comic_title');
+
+			// disable loading other comic while loading
+			toggleReadNow();
 
 			var blob = null;
 			var xhr = new XMLHttpRequest();
@@ -48,6 +51,10 @@ $(document).ready(function(){
 			}
 			xhr.send();
 		});
+
+		function toggleReadNow(disable = true) {
+			$('.readNow').prop('disabled', disable);
+		}
 
 		function openComic(file)
 		{
@@ -101,6 +108,9 @@ $(document).ready(function(){
 
 						// show output box
 						$('#output').fadeIn('slow');
+						
+						// re-enable read now
+						toggleReadNow(false);
 					}
 				});
 		}
@@ -192,6 +202,9 @@ $(document).ready(function(){
 
                 // show output box
                 $('#output').fadeIn('slow');
+
+				// re-enable read now
+				toggleReadNow(false);
 			}
         });
     }
