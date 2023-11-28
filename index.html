@@ -1,69 +1,148 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        <!-- Tell the browser to be responsive to screen width -->
-		<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-        <!-- load all styles css -->
-        <link href="./assets/css/styles.css" rel="stylesheet">
-        <link href="./assets/css/lightgallery.min.css" rel="stylesheet">
-        <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" />
-        <title>Web Based Comic Book Reader</title>
-    </head>
+<head>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    
+    <!-- Load all styles and scripts -->
+    <link href="./assets/css/styles.css" rel="stylesheet">
+    <link href="./assets/css/lightgallery.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css" rel="stylesheet" type="text/css" />
+    <script src="./assets/js/jquery-3.2.0.min.js"></script>
+    <script src="./assets/js/uncompress/uncompress.js"></script>
+    <script src="./assets/js/lightGallery/lightgallery-all.min.js"></script>
+    <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
+    <script src="./assets/js/script.js"></script>
 
-    <body>
-        <div class="se-pre-con">
-			<div class="progress-text">Reading 0/0 pages</div>
-		</div> <!-- loading spinner -->
+    <!-- Add the CSS styles below this comment -->
+    <style>
+        /* Style the comic buttons container */
+        #comicButtons {
+            max-height: 125px; /* Set the maximum height for scrolling */
+            overflow-y: auto; /* Enable vertical scrolling if content exceeds the container height */
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
 
-        <center>
-            <fieldset>
-              <legend>
-                <button class="tab-button active" id="tab" tab="upload">Choose file from you computer</button>
+        /* Style the letter headers */
+        h2 {
+            font-size: 18px;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        /* Style the comic buttons */
+        .readNow {
+            display: block;
+            margin-bottom: 5px;
+            padding: 5px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+    <!-- End of CSS styles -->
+
+    <title>Web Based Comic Book Reader</title>
+</head>
+<body>
+    <div class="se-pre-con">
+        <div class="progress-text">Reading 0/0 pages</div>
+    </div> <!-- loading spinner -->
+
+    <center>
+        <fieldset>
+            <legend>
+                <button class="tab-button active" id="tab" tab="upload">Choose file from your computer</button>
                 <button class="tab-button" id="tab" tab="internal">Open file stored in the server</button>
-              </legend>
-              <br>
+            </legend>
+            <br>
 
-              <div id="upload" class="option">
-                  <div id="dropzone" class="dropzone">
-                  </div>
-              </div>
+            <div id="upload" class="option">
+                <div id="dropzone" class="dropzone">
+                </div>
+            </div>
 
-              <div id="internal" class="option" style="display:none">
-                  <button class="readNow" comic_title="whizzkids_united.cbz">
-                    <img src='./comics/whizzkids_united_thumb.jpg' class='imgUrl'/>
-                    <br>Whizzkids United vs HIV
-                  </button>
+            <div id="internal" class="option" style="display:none">
+                <!-- Dynamically generated buttons for CBZ files -->
+                <div id="comicButtons"></div>
+            </div>
+            <br>
+        </fieldset>
 
-                  <button class="readNow" comic_title="zack_and_max.cbz">
-                    <img src='./comics/zack_and_max_thumb.jpg' class='imgUrl'/>
-                    <br>The Adventures of Zack &amp; Max
-                  </button>
+        <br><br>
 
-                  <button class="readNow" comic_title="comic_strip.cbz">
-                    <img src='./comics/comic_strip_thumb.jpg' class='imgUrl'/>
-                    <br>Alien Comic Strip
-                  </button>
-              </div>
-              <br>
-            </fieldset>
+        <!-- Output comics images here -->
+        <div id="output"></div>
 
-            <br><br>
+        <br><br>
+        Afif Zafri &copy; 2017 - <span id='currYear'></span>
+    </center>
 
-            <!-- output comics images here -->
-            <div id="output"></div>
+<!-- Fork me on GitHub ribbon -->
+<a href="https://github.com/afzafri/Web-Comic-Reader" target="_blank">
+    <img style="position: absolute; top: 0; right: 0; border: 0;" src="forkme.png" alt="Fork me on GitHub">
+</a>
 
-            <br><br>
-            Afif Zafri &copy; 2017 - <span id='currYear'></span>
-        </center>
+<script>
+    // Function to load and display the CBZ file content
+    function displayComic(fileName) {
+        // You can implement code here to display the CBZ content as desired.
+        // This can involve using a library like PDF.js or a custom solution.
+        // For simplicity, we'll just display the file name for demonstration purposes.
+        alert("Opening CBZ file: " + fileName);
+    }
 
-        <!-- fork me on github ribbon -->
-        <a href="https://github.com/afzafri/Web-Comic-Reader"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+    // Assuming you have a folder with CBZ files in the 'comics' directory
+    const comicsFolder = './comics/';
 
-        <!-- load all scripts -->
-        <script src="./assets/js/jquery-3.2.0.min.js"></script>
-        <script src="./assets/js/uncompress/uncompress.js"></script>
-        <script src="./assets/js/lightGallery/lightgallery-all.min.js"></script>
-        <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
-        <script src="./assets/js/script.js"></script>
+    // List of CBZ file names (retrieved from server using PHP)
+    fetch('./get_cbz_files.php') // Adjust the URL to match your PHP script
+        .then(response => response.json())
+        .then(data => {
+            // Sort the file names alphabetically
+            data.sort();
 
-    </body>
+            // Use the data to dynamically generate the buttons
+            const comicButtonsContainer = document.getElementById('comicButtons');
+
+            let currentLetter = null; // To categorize by letters
+
+            data.forEach(fileName => {
+                const firstLetter = fileName[0].toUpperCase();
+
+                // Check if a new letter category is needed
+                if (firstLetter !== currentLetter) {
+                    // Create a header for the letter category
+                    const letterHeader = document.createElement('h2');
+                    letterHeader.textContent = firstLetter;
+                    comicButtonsContainer.appendChild(letterHeader);
+
+                    // Update the current letter
+                    currentLetter = firstLetter;
+                }
+
+                const button = document.createElement('button');
+                button.className = 'readNow';
+                button.setAttribute('comic_title', fileName);
+
+                const text = document.createTextNode(fileName);
+
+                button.appendChild(text);
+
+                button.addEventListener('click', () => {
+                    displayComic(fileName);
+                });
+
+                comicButtonsContainer.appendChild(button);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching CBZ files:', error);
+        });
+</script>
+
+
+</body>
 </html>
