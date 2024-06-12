@@ -11,9 +11,10 @@ body {
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
+  cursor: pointer;
 }
 
-.tab-button.active {
+.tab-button.active, .tab-button:hover {
   background-color: #008CBA; /* Blue */
   color: white;
 }
