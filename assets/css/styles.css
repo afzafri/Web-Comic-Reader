@@ -64,6 +64,10 @@ fieldset {
 	transform: scale(1.1);
 }
 
+.readNow {
+	cursor: pointer;
+}
+
 /* for mobile */
 @media only screen
 and (min-device-width : 320px)
