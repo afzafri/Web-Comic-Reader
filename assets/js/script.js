@@ -1,204 +1,212 @@
-$(document).ready(function(){
+document.addEventListener('DOMContentLoaded', () => {
 
-	// tab switch
-	$(document).on('click', '#tab', function() {
-		// reset all
-		$('#output').hide();
-		$('.tab-button').removeClass('active');
-		$('.option').hide();
+    const outputElement = document.getElementById('output');
+    const progressTextElement = document.querySelector('.progress-text');
+    const sePreConElement = document.querySelector('.se-pre-con');
+    const readNowButtons = document.querySelectorAll('.readNow');
+    const currYearElement = document.getElementById('currYear');
+    const tabButtons = document.querySelectorAll('#tab');
+    const allTabButtons = document.querySelectorAll('.tab-button');
+    const allOptions = document.querySelectorAll('.option');
 
-		// set active
-		var currentID = $(this).attr('tab');
-		$(this).addClass('active');
-		$('#'+currentID).show();
-	});
+    // tab switch
+    tabButtons.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // reset all
+            outputElement.style.display = 'none';
+            allTabButtons.forEach(button => button.classList.remove('active'));
+            allOptions.forEach(option => option.style.display = 'none');
 
-	// current year
-	$('#currYear').html((new Date()).getFullYear());
+            // set active
+            const currentID = tab.getAttribute('tab');
+            tab.classList.add('active');
+            document.getElementById(currentID).style.display = 'block';
+        });
+    });
 
-	// Load all the archive formats
-	loadArchiveFormats(['rar', 'zip', 'tar']);
+    // current year
+    currYearElement.innerHTML = (new Date()).getFullYear();
 
-	// ----- OPEN COMIC FROM COMPUTER -----
-	let dropzone = new Dropzone("div#dropzone", {
-		url: '#', // Dummy URL, not used since you're not uploading files
-		dictDefaultMessage: 'Click or Drop files here to upload <br> <i>(cbr,cbz,cbt files only)</i>',
-		autoProcessQueue: false, // Disable automatic uploads
-		disablePreviews: false,
-		createImageThumbnails: false,
-		acceptedFiles: '.cbr,.cbz,.cbt',
-		maxFiles: 1,
-		maxfilesexceeded: function(file) {
-			this.removeAllFiles();
-		},
-		init: function () {
-			this.on('addedfile', function (file) {
-				// Handle the dropped file here
-				openComic(file);
-			});
-		}
-	});
+    // Load all the archive formats
+    loadArchiveFormats(['rar', 'zip', 'tar']);
 
-	// ----- OPEN COMIC FROM INTERNAL FILE IN SERVER -----
-	$(document).on('click', '.readNow', function() {
-		// get the comic file name
-		var comictitle = $(this).attr('comic_title');
+    // ----- OPEN COMIC FROM COMPUTER -----
+    let dropzone = new Dropzone("div#dropzone", {
+        url: '#', // Dummy URL, not used since you're not uploading files
+        dictDefaultMessage: 'Click or Drop files here to upload <br> <i>(cbr,cbz,cbt files only)</i>',
+        autoProcessQueue: false, // Disable automatic uploads
+        disablePreviews: false,
+        createImageThumbnails: false,
+        acceptedFiles: '.cbr,.cbz,.cbt',
+        maxFiles: 1,
+        maxfilesexceeded: function(file) {
+            this.removeAllFiles();
+        },
+        init: function () {
+            this.on('addedfile', function (file) {
+                // Handle the dropped file here
+                openComic(file);
+            });
+        }
+    });
 
-		// disable loading other comic while loading
-		toggleReadNow();
+    // ----- OPEN COMIC FROM INTERNAL FILE IN SERVER -----
+    readNowButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // get the comic file name
+            const comictitle = button.getAttribute('comic_title');
 
-		var blob = null;
-		var xhr = new XMLHttpRequest();
-		xhr.open("GET", "./comics/"+comictitle); // make sure to put all the comics inside "comics" directory in the root directory
-		xhr.responseType = "blob";
-		xhr.onload = function()
-		{
-			blob = xhr.response;
-				var file = new File([blob], comictitle);
-				// open the comic
-				openComic(file);
-		}
-		xhr.send();
-	});
+            // disable loading other comic while loading
+            toggleReadNow();
 
-	function toggleReadNow(disable = true) {
-		$('.readNow').prop('disabled', disable);
-	}
+            fetch("./comics/" + comictitle)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok " + response.statusText);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const file = new File([blob], comictitle);
+                    // open the comic
+                    openComic(file);
+                })
+                .catch(error => {
+                    console.error("There was a problem with the fetch operation:", error);
+                    toggleReadNow(false); // re-enable the button if there is an error
+                });
+        });
+    });
 
-	function openComic(file)
-	{
-			$('#output').hide();
-
-			// init the gallery plugin, when there is a first click on a image
-			// re-bind this function when opening new comic
-			$(document).one('click','#comicImg',function(){
-				event.preventDefault();
-				// initialize gallery
-				$('#output').lightGallery({
-					selector: 'a',
-					zoom: true,
-					fullScreen: true,
-					download: false,
-					enableTouch: true,
-				});
-				$(this).click();
-			});
-
-			// Update progress text
-			$('.progress-text').html("Reading 0/0 pages");
-
-			// show loading
-			$('.se-pre-con').fadeIn('slow');
-
-			// destroy lightGallery
-			var $lg = $('#output');
-			$lg.lightGallery();
-			$lg.data('lightGallery').destroy(true);
-
-			// clear previous blobs
-			clearBlobs();
-
-			// clear previous output data
-			$('#output').empty();
-
-			// Open the file as an archive
-			archiveOpenFile(file, function(archive, err) {
-				if (archive)
-				{
-					$('#output').html("<b>"+archive.file_name+"</b><br><i>Click on the image to enlarge</i><br><br>");
-					readContents(archive);
-				}
-				else
-				{
-					$('#output').html("<font color='red'>"+err+"</font><br>");
-
-					// hide loading
-					$('.se-pre-con').fadeOut('slow');
-
-					// show output box
-					$('#output').fadeIn('slow');
-					
-					// re-enable read now
-					toggleReadNow(false);
-				}
-			});
-	}
-
-	// Function to read the contents of the archive
-	async function readContents(archive) {
-		var entries = archive.entries;
-
-		// Create an array to hold the promises
-		var promises = [];
-
-		// Loop through all the contents
-		for (var i = 0; i < entries.length; i++) {
-			var filename = entries[i].name;
-			// Check if it's an output file and not a folder
-			if (getExt(filename) !== '') {
-				// Push the promise to the array
-				promises.push(createBlobAsync(entries[i], i, entries.length));
-			}
-		}
-
-		// Wait for all promises to resolve
-		await Promise.all(promises);
-	}
-
-	// function to convert the archive contents into blobs asynchronously, and return URL
-	function createBlobAsync(entry, i, max) {
-		return new Promise((resolve) => {
-			entry.readData(function(data, err) {
-				var blob = new Blob([data], { type: getMIME(entry.name) });
-				var url = URL.createObjectURL(blob);
-
-				$('#output').append("<a href='" + url + "' id='comicImg'><img src='" + url + "' class='imgUrl'/></a>");
-
-				$('.progress-text').html("Reading " + (i + 1) + "/" + max + " pages");
-
-				if (i === max - 1) {
-					$('.progress-text').html("<font color='lime'>Completed!</font>");
-					$('.se-pre-con').fadeOut('slow'); // hide loading
-					$('#output').fadeIn('slow'); // show output box
-					toggleReadNow(false); // re-enable read now
-				}
-
-				resolve(); // Resolve the promise
-			});
-		});
-	}
-
-    // function to return file extension based on file name
-    function getExt(filename)
-    {
-        var ext = filename.split('.').pop();
-        return (ext == filename) ? '' : ext;
-    }
-
-    // function to return MIME type based on the file extension
-    // NOTE: THIS FUNCTION IS NOT EFFICIENT
-    function getMIME(filename) 
-	{
-		var ext = getExt(filename).toLowerCase();
-
-		var mimeTypes = {
-			'jpg': 'image/jpeg',
-			'jpeg': 'image/jpeg',
-			'png': 'image/png',
-			'gif': 'image/gif',
-			'bmp': 'image/bmp',
-			'webp': 'image/webp'
-		};
-
-		return mimeTypes[ext] || 'image/jpeg'; // Default to JPEG if extension is not recognized
-	}
-
-    // function to clear all previous blobs, free up memory
-    function clearBlobs()
-    {
-        $('.imgUrl').each(function(){
-            URL.revokeObjectURL($(this).attr('src'));
+    function toggleReadNow(disable = true) {
+        readNowButtons.forEach(button => {
+            button.disabled = disable;
         });
     }
 
+    function openComic(file) {
+        outputElement.style.display = 'none';
+
+		// init the gallery plugin, when there is a first click on a image
+		// re-bind this function when opening new comic
+		// TODO: remove jquery code. Dependency: lightGallery
+		$(document).one('click','#comicImg',function(event){
+			event.preventDefault();
+			// initialize gallery
+			$('#output').lightGallery({
+				selector: 'a',
+				zoom: true,
+				fullScreen: true,
+				download: false,
+				enableTouch: true,
+			});
+			$(this).click();
+		});
+
+        // Update progress text
+        progressTextElement.innerHTML = "Reading 0/0 pages";
+
+        // show loading
+        sePreConElement.style.display = 'block';
+
+        // destroy lightGallery
+		// TODO: remove jquery code. Dependency: lightGallery
+        var $lg = $('#output');
+		$lg.lightGallery();
+		$lg.data('lightGallery').destroy(true);
+
+        // clear previous blobs
+        clearBlobs();
+
+        // clear previous output data
+        outputElement.innerHTML = '';
+
+        // Open the file as an archive
+        archiveOpenFile(file, (archive, err) => {
+            if (archive) {
+                outputElement.innerHTML = `<b>${archive.file_name}</b><br><i>Click on the image to enlarge</i><br><br>`;
+                readContents(archive);
+            } else {
+                outputElement.innerHTML = `<font color='red'>${err}</font><br>`;
+
+                // hide loading
+                sePreConElement.style.display = 'none';
+
+                // show output box
+                outputElement.style.display = 'block';
+                
+                // re-enable read now
+                toggleReadNow(false);
+            }
+        });
+    }
+
+    async function readContents(archive) {
+        const entries = archive.entries;
+        const promises = [];
+
+        for (let i = 0; i < entries.length; i++) {
+            const filename = entries[i].name;
+            if (getExt(filename) !== '') {
+                promises.push(createBlobAsync(entries[i], i, entries.length));
+            }
+        }
+
+        await Promise.all(promises);
+    }
+
+    function createBlobAsync(entry, i, max) {
+        return new Promise((resolve) => {
+            entry.readData((data, err) => {
+                const blob = new Blob([data], { type: getMIME(entry.name) });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.id = 'comicImg';
+
+                const img = document.createElement('img');
+                img.src = url;
+                img.classList.add('imgUrl');
+
+                a.appendChild(img);
+                outputElement.appendChild(a);
+
+                progressTextElement.innerHTML = `Reading ${i + 1}/${max} pages`;
+
+                if (i === max - 1) {
+                    progressTextElement.innerHTML = "<font color='lime'>Completed!</font>";
+                    sePreConElement.style.display = 'none';
+                    outputElement.style.display = 'block';
+                    toggleReadNow(false);
+                }
+
+                resolve();
+            });
+        });
+    }
+
+    function getExt(filename) {
+        const ext = filename.split('.').pop();
+        return (ext === filename) ? '' : ext;
+    }
+
+    function getMIME(filename) {
+        const ext = getExt(filename).toLowerCase();
+        const mimeTypes = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'bmp': 'image/bmp',
+            'webp': 'image/webp'
+        };
+        return mimeTypes[ext] || 'image/jpeg';
+    }
+
+    function clearBlobs() {
+        document.querySelectorAll('.imgUrl').forEach(img => {
+            URL.revokeObjectURL(img.src);
+        });
+    }
 });
