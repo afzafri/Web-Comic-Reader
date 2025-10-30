@@ -257,6 +257,41 @@ footer a:hover {
     transform: scale(1.1);
 }
 
+#output a.last-read {
+    position: relative;
+    display: inline-block;
+}
+
+#output a.last-read::before {
+    content: 'Last read';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    z-index: 10;
+}
+
+#output a.last-read .imgUrl {
+    box-shadow: 0 0 0 3px var(--brand),
+                0 8px 24px rgba(37,99,235,.3);
+    border-radius: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+    #output a.last-read .imgUrl {
+        box-shadow: 0 0 0 3px var(--brand),
+                    0 8px 24px rgba(37,99,235,.5);
+    }
+}
+
 .dropzone .dz-preview {
     display: none !important;
 }
