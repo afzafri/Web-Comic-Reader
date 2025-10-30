@@ -47,8 +47,41 @@ body:not(:has(#output[style*="display: block"])) {
     border: 1px solid var(--border);
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,.05);
-    padding: 30px 26px 40px;
+    padding: 30px 26px;
     text-align: center;
+    position: relative;
+}
+
+.collapse-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .2s;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+}
+
+.collapse-btn:hover {
+    opacity: 1;
+    background: var(--border);
+}
+
+.collapse-btn.show {
+    display: flex;
+}
+
+.wrap.collapsed .collapse-btn {
+    display: none;
 }
 
 h1 {

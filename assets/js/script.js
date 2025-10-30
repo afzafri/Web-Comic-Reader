@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sePreConElement = document.querySelector('.se-pre-con');
     const currYearElement = document.getElementById('currYear');
     const wrapElement = document.querySelector('.wrap');
+    const collapseBtn = document.getElementById('collapseBtn');
 
     // current year
     currYearElement.innerHTML = (new Date()).getFullYear();
@@ -15,6 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // click on collapsed footer to expand uploader
     document.querySelector('.footer-collapsed').addEventListener('click', () => {
         wrapElement.classList.remove('collapsed');
+    });
+
+    // click collapse button to hide uploader
+    collapseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        wrapElement.classList.add('collapsed');
     });
 
     // Dropzone configuration
@@ -39,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function openComic(file) {
         outputElement.style.display = 'none';
         wrapElement.classList.add('collapsed');
+        collapseBtn.classList.add('show');
 
         // init the gallery plugin, when there is a first click on a image
         // re-bind this function when opening new comic
