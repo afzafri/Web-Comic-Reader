@@ -54,8 +54,8 @@ body:not(:has(#output[style*="display: block"])) {
 
 .collapse-btn {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 10px;
+    right: 10px;
     width: 28px;
     height: 28px;
     padding: 0;
@@ -95,13 +95,200 @@ p {
     margin: 0 0 24px;
 }
 
+.folder-btn {
+    width: 100%;
+    padding: 16px 20px;
+    background: var(--bg);
+    color: var(--text);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    margin-bottom: 12px;
+    font-family: inherit;
+    text-align: left;
+}
+
+.folder-btn-primary {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+}
+
+.folder-btn-primary:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(37,99,235,.3);
+}
+
+.folder-btn-secondary:hover {
+    background: var(--border);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.05);
+}
+
+.btn-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.btn-subtitle {
+    font-size: 13px;
+    opacity: 0.8;
+    font-weight: normal;
+}
+
+.library-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.library-header h1 {
+    margin: 0;
+}
+
+.link-btn {
+    background: none;
+    border: none;
+    color: var(--brand);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all .2s;
+    font-family: inherit;
+}
+
+.link-btn:hover {
+    background: rgba(37,99,235,.1);
+}
+
+.divider {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin: 20px 0;
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: var(--border);
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
+#recentComics {
+    margin: 20px 0;
+}
+
+#recentComics h3,
+#allComics h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: var(--text);
+}
+
+#allComics {
+    margin: 20px 0;
+}
+
+#allComicsList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#recentComicsList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.recent-comic-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.recent-comic-item:hover {
+    background: var(--border);
+    transform: translateX(4px);
+}
+
+.recent-comic-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--brand);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.recent-comic-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: #fff;
+}
+
+.recent-comic-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.recent-comic-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.recent-comic-meta {
+    font-size: 12px;
+    color: var(--muted);
+}
+
 #dropzone {
     border: 2px dashed var(--border) !important;
     border-radius: 14px;
     padding: 36px 20px;
     background: transparent !important;
     transition: .2s;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     min-height: 180px;
@@ -176,9 +363,9 @@ footer a:hover {
     padding: 16px 26px;
 }
 
-.wrap.collapsed h1,
-.wrap.collapsed p,
-.wrap.collapsed #dropzone,
+.wrap.collapsed #initialView,
+.wrap.collapsed #libraryView,
+.wrap.collapsed #quickReadView,
 .wrap.collapsed .footer-default {
     display: none !important;
 }
