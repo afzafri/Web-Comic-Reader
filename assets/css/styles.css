@@ -220,6 +220,7 @@ p {
     gap: 8px;
     max-height: 300px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 #recentComicsList {
@@ -246,8 +247,8 @@ p {
 }
 
 .recent-comic-icon {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 70px;
     background: var(--brand);
     border-radius: 6px;
     display: flex;
