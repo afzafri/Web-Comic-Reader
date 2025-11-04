@@ -307,6 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let currentComicFilename = '';
+    let lightGalleryInstance = null;
+    let hasInitializedGallery = false;
 
     function openComic(file) {
         outputElement.style.display = 'none';
@@ -314,23 +316,36 @@ document.addEventListener('DOMContentLoaded', () => {
         collapseBtn.classList.add('show');
         currentComicFilename = file.name;
 
+        // reset gallery initialization flag
+        hasInitializedGallery = false;
+
         // init the gallery plugin, when there is a first click on a image
-        // re-bind this function when opening new comic
-        // TODO: remove jquery code. Dependency: lightGallery
-        $(document).one('click','#comicImg',function(event){
+        const clickHandler = function(event) {
+            const target = event.target.closest('#comicImg');
+            if (!target || hasInitializedGallery) return;
+
             event.preventDefault();
+            hasInitializedGallery = true;
 
             // initialize gallery
-            const $gallery = $('#output').lightGallery({
+            lightGalleryInstance = lightGallery(outputElement, {
                 selector: 'a',
                 zoom: true,
                 fullScreen: true,
                 download: false,
-                enableTouch: true
+                enableTouch: true,
+                thumbnail: true,
+                animateThumb: true,
+                showThumbByDefault: true,
+                autoplay: false,
+                autoplayControls: true,
+                rotate: true
             });
 
             // track page changes
-            $gallery.on('onAfterSlide.lg', function(event, prevIndex, index) {
+            outputElement.addEventListener('onAfterSlide', function(event) {
+                const index = event.detail.index;
+
                 saveLastPageRead(currentComicFilename, index);
 
                 // clear previous highlight and apply to current page
@@ -344,8 +359,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            $(this).click();
-        });
+            // trigger click to open gallery
+            target.click();
+
+            // remove the click handler after first use
+            document.removeEventListener('click', clickHandler);
+        };
+
+        // add click handler for first image click
+        document.addEventListener('click', clickHandler);
 
         // Update progress text
         progressTextElement.innerHTML = "Reading 0/0 pages";
@@ -353,11 +375,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // show loading
         sePreConElement.style.display = 'block';
 
-        // destroy lightGallery
-        // TODO: remove jquery code. Dependency: lightGallery
-        var $lg = $('#output');
-        $lg.lightGallery();
-        $lg.data('lightGallery').destroy(true);
+        // destroy previous lightGallery instance
+        if (lightGalleryInstance) {
+            lightGalleryInstance.destroy(true);
+            lightGalleryInstance = null;
+        }
 
         // clear previous blobs
         clearBlobs();
