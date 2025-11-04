@@ -98,7 +98,7 @@ npx http-server -p 8000 -S -C localhost+1.pem -K localhost+1-key.pem
 - Reading progress is stored in `localStorage` (key: `comic_reader_userpref`)
 - Folder handles are stored in `IndexedDB` (database: `ComicReaderDB`)
 - Thumbnails are base64-encoded JPEG stored in localStorage
-- lightGallery v1 still requires jQuery as a dependency
+- Uses vanilla JavaScript (no jQuery required)
 
 ## Requirements
 
@@ -140,7 +140,6 @@ npx http-server -p 8000 -S -C localhost+1.pem -K localhost+1-key.pem
 - [Uncompress.js](https://github.com/workhorsy/uncompress.js) - Archive extraction
 - [lightGallery](https://github.com/sachinchoolur/lightGallery) - Image gallery and viewer
 - [Dropzone.js](https://www.dropzone.dev/) - File upload handling
-- [jQuery](https://jquery.com/) - DOM manipulation (lightGallery dependency)
 
 ## License
 
