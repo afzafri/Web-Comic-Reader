@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const libraryViewEl = document.getElementById('libraryView');
     const quickReadViewEl = document.getElementById('quickReadView');
     const footerCollapsedTextEl = document.getElementById('footerCollapsedText');
+    const browserNoticeEl = document.getElementById('browserNotice');
 
     let comicsDirectoryHandle = null;
     let isLibraryMode = false;
@@ -34,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectFolderBtn.style.display = 'flex';
         dividerOrEl.style.display = 'block';
     } else {
-        // when API not supported, make quick read button primary
+        // when API not supported, show notice and make quick read button primary
+        browserNoticeEl.style.display = 'block';
         quickReadBtn.classList.remove('folder-btn-secondary');
         quickReadBtn.classList.add('folder-btn-primary');
     }
@@ -43,10 +45,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadArchiveFormats(['rar', 'zip', 'tar']);
 
     // click on collapsed footer to expand
-    document.querySelector('.footer-collapsed').addEventListener('click', () => {
+    document.querySelector('.footer-collapsed').addEventListener('click', async () => {
         wrapElement.classList.remove('collapsed');
         if (isLibraryMode && comicsDirectoryHandle) {
-            showLibraryMode();
+            // check permission again when expanding
+            const permission = await comicsDirectoryHandle.queryPermission({ mode: 'read' });
+            if (permission === 'granted') {
+                showLibraryMode();
+            } else {
+                showReconnectButton();
+            }
         } else if (!isLibraryMode) {
             showQuickReadMode();
         } else {
@@ -66,9 +74,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selectFolderBtn) {
         selectFolderBtn.addEventListener('click', async () => {
             try {
+                // if we already have a handle, try to request permission first
+                if (comicsDirectoryHandle) {
+                    const permission = await comicsDirectoryHandle.requestPermission({ mode: 'read' });
+                    if (permission === 'granted') {
+                        await showLibraryMode();
+                        return;
+                    }
+                }
+
+                // show directory picker
                 const dirHandle = await window.showDirectoryPicker({
                     mode: 'read'
                 });
+
+                // explicitly request persistent permission
+                const permission = await dirHandle.requestPermission({ mode: 'read' });
+                if (permission !== 'granted') {
+                    console.error('Permission not granted');
+                    return;
+                }
+
                 comicsDirectoryHandle = dirHandle;
                 await saveDirectoryHandle(dirHandle);
                 await showLibraryMode();
@@ -97,18 +123,55 @@ document.addEventListener('DOMContentLoaded', () => {
     // back to library button
     if (backToLibraryBtn) {
         backToLibraryBtn.addEventListener('click', async () => {
-            await showLibraryMode();
+            if (comicsDirectoryHandle) {
+                const permission = await comicsDirectoryHandle.queryPermission({ mode: 'read' });
+                if (permission === 'granted') {
+                    await showLibraryMode();
+                } else {
+                    // need to request permission with user gesture
+                    try {
+                        const newPermission = await comicsDirectoryHandle.requestPermission({ mode: 'read' });
+                        if (newPermission === 'granted') {
+                            await showLibraryMode();
+                        } else {
+                            showReconnectButton();
+                        }
+                    } catch (err) {
+                        console.error('Failed to request permission:', err);
+                        showReconnectButton();
+                    }
+                }
+            }
         });
     }
 
     // load directory handle on startup
     if (supportsFileSystemAccess) {
-        loadDirectoryHandle().then(async (handle) => {
-            if (handle) {
-                comicsDirectoryHandle = handle;
+        loadDirectoryHandle().then(async (result) => {
+            if (result.handle && result.hasPermission) {
+                comicsDirectoryHandle = result.handle;
                 await showLibraryMode();
+            } else if (result.handle && !result.hasPermission) {
+                // we have a handle but need permission - show button to re-grant
+                comicsDirectoryHandle = result.handle;
+                showReconnectButton();
             }
         });
+    }
+
+    function showReconnectButton() {
+        // show initial view with modified button text
+        initialViewEl.style.display = 'block';
+        libraryViewEl.style.display = 'none';
+        quickReadViewEl.style.display = 'none';
+
+        // change button text to indicate reconnection
+        const titleEl = selectFolderBtn.querySelector('.btn-title');
+        const subtitleEl = selectFolderBtn.querySelector('.btn-subtitle');
+        if (titleEl && subtitleEl) {
+            titleEl.textContent = 'Reconnect to Comics Folder';
+            subtitleEl.textContent = 'Click to restore access to your library';
+        }
     }
 
     async function showLibraryMode() {
@@ -119,6 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
         libraryViewEl.style.display = 'block';
         quickReadViewEl.style.display = 'none';
         footerCollapsedTextEl.textContent = 'Show library';
+
+        // reset button text in case it was changed
+        const titleEl = selectFolderBtn.querySelector('.btn-title');
+        const subtitleEl = selectFolderBtn.querySelector('.btn-subtitle');
+        if (titleEl && subtitleEl) {
+            titleEl.textContent = 'Select Comics Folder';
+            subtitleEl.textContent = 'Auto-track progress, browse all comics';
+        }
 
         await loadRecentComics();
         await loadAllComics();
@@ -136,6 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
         quickReadViewEl.style.display = 'block';
         footerCollapsedTextEl.textContent = 'Upload another file';
 
+        // reset button text in case it was changed
+        const titleEl = selectFolderBtn.querySelector('.btn-title');
+        const subtitleEl = selectFolderBtn.querySelector('.btn-subtitle');
+        if (titleEl && subtitleEl) {
+            titleEl.textContent = 'Select Comics Folder';
+            subtitleEl.textContent = 'Auto-track progress, browse all comics';
+        }
+
         // show back to library button only if we have a directory handle
         if (backToLibraryBtn) {
             backToLibraryBtn.style.display = comicsDirectoryHandle ? 'block' : 'none';
@@ -146,6 +225,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!comicsDirectoryHandle) return;
 
         try {
+            // check permission before accessing
+            const permission = await comicsDirectoryHandle.queryPermission({ mode: 'read' });
+            if (permission !== 'granted') {
+                allComicsListEl.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px; font-size: 14px;">Permission required to access folder</div>';
+                return;
+            }
+
             allComicsListEl.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner" style="margin: 0 auto;"></div><div style="margin-top: 12px; color: var(--muted); font-size: 14px;">Scanning folder...</div></div>';
 
             const comics = [];
@@ -498,18 +584,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 // verify we still have permission
                 const permission = await handle.queryPermission({ mode: 'read' });
                 if (permission === 'granted') {
-                    return handle;
-                } else if (permission === 'prompt') {
-                    const newPermission = await handle.requestPermission({ mode: 'read' });
-                    if (newPermission === 'granted') {
-                        return handle;
-                    }
+                    return { handle, hasPermission: true };
+                } else {
+                    // permission is 'prompt' or 'denied' - need user interaction
+                    return { handle, hasPermission: false };
                 }
             }
-            return null;
+            return { handle: null, hasPermission: false };
         } catch (err) {
             console.error('Failed to load directory handle:', err);
-            return null;
+            return { handle: null, hasPermission: false };
         }
     }
 
@@ -562,6 +646,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!comicsDirectoryHandle) return;
 
         try {
+            // check permission before accessing files
+            const permission = await comicsDirectoryHandle.queryPermission({ mode: 'read' });
+            if (permission !== 'granted') {
+                // try to request permission
+                const newPermission = await comicsDirectoryHandle.requestPermission({ mode: 'read' });
+                if (newPermission !== 'granted') {
+                    showReconnectButton();
+                    return;
+                }
+            }
+
             const fileHandle = await comicsDirectoryHandle.getFileHandle(filename);
             const file = await fileHandle.getFile();
             openComic(file);
@@ -577,7 +672,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500);
         } catch (err) {
             console.error('Failed to open comic:', err);
-            alert('Could not find this comic in the selected folder. Please re-upload it or select a different folder.');
+            if (err.name === 'NotAllowedError') {
+                showReconnectButton();
+            } else {
+                alert('Could not find this comic in the selected folder. Please re-upload it or select a different folder.');
+            }
         }
     }
 

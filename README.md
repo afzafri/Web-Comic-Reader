@@ -106,6 +106,21 @@ npx http-server -p 8000 -S -C localhost+1.pem -K localhost+1-key.pem
 - **HTTPS required** for Library Mode (folder access)
 - For Quick Read Mode, HTTP is sufficient
 
+## Browser Compatibility
+
+### Library Mode (File System Access API)
+**✅ Fully Supported:**
+- Chrome/Chromium (desktop)
+- Microsoft Edge (desktop)
+- Opera (desktop)
+
+**❌ Not Supported:**
+- Safari (macOS & iOS) - Apple has not implemented this API due to privacy/security concerns
+- Firefox - Partially supported behind flags, not production-ready
+- All iOS browsers (Chrome, Firefox, Edge on iOS) - Use Safari's engine, inherit same limitations
+
+**📝 Note:** Safari and unsupported browsers will automatically fall back to Quick Read mode only. Users can still read comics by uploading individual files, but library features and progress tracking won't be available.
+
 ## Supported Formats
 
 - `.cbr` - Comic Book RAR
