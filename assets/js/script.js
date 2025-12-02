@@ -283,7 +283,43 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (err) {
             console.error('Failed to load all comics:', err);
-            allComicsListEl.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px; font-size: 14px;">Error loading comics from folder</div>';
+            
+            if (err.name === 'NotFoundError') {
+                const folderName = comicsDirectoryHandle ? comicsDirectoryHandle.name : 'directory';
+                
+                allComicsListEl.innerHTML = '';
+                
+                const errorWrapper = document.createElement('div');
+                errorWrapper.style.textAlign = 'center';
+                errorWrapper.style.padding = '40px 20px';
+                
+                errorWrapper.innerHTML = `
+                    <div style="margin-bottom: 10px; color: var(--text);">Failed to load comics from "<strong>${folderName}</strong>"</div>
+                    <div style="margin-bottom: 25px; color: var(--muted); font-size: 14px;">The folder might have been moved, renamed, or deleted.</div>
+                `;
+                
+                // Clone the main select button to reuse its exact style
+                if (selectFolderBtn) {
+                    const btnClone = selectFolderBtn.cloneNode(true);
+                    btnClone.id = ''; // Remove ID
+                    btnClone.style.display = 'inline-flex';
+                    btnClone.style.margin = '0 auto';
+                    
+                    // Re-attach click handler to trigger original button
+                    btnClone.addEventListener('click', () => {
+                        selectFolderBtn.click();
+                    });
+                    
+                    errorWrapper.appendChild(btnClone);
+                }
+                
+                allComicsListEl.appendChild(errorWrapper);
+                
+                // Clear the invalid handle from memory
+                comicsDirectoryHandle = null;
+            } else {
+                allComicsListEl.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px; font-size: 14px;">Error loading comics from folder</div>';
+            }
         }
     }
 
@@ -620,10 +656,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadRecentComics() {
-        if (!comicsDirectoryHandle) {
-            return;
-        }
-
         try {
             const readingHistory = JSON.parse(localStorage.getItem('comic_reader_userpref') || '{}');
 
@@ -664,10 +696,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function openComicFromFolder(filename) {
-        if (!comicsDirectoryHandle) return;
+    async function removeComicFromHistory(filename) {
+        const readingHistory = JSON.parse(localStorage.getItem('comic_reader_userpref') || '{}');
+        if (readingHistory[filename]) {
+            delete readingHistory[filename];
+            localStorage.setItem('comic_reader_userpref', JSON.stringify(readingHistory));
+            
+            // Refresh UI
+            await loadRecentComics();
+            
+            // Hide container if list is empty
+            if (recentComicsListEl.children.length === 0) {
+                recentComicsEl.style.display = 'none';
+            }
+        }
+    }
 
+    async function openComicFromFolder(filename) {
         try {
+            if (!comicsDirectoryHandle) {
+                throw new Error('Directory handle not available');
+            }
+
             // check permission before accessing files
             const permission = await comicsDirectoryHandle.queryPermission({ mode: 'read' });
             if (permission !== 'granted') {
@@ -698,6 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showReconnectButton();
             } else {
                 alert('Could not find this comic in the selected folder. Please re-upload it or select a different folder.');
+                await removeComicFromHistory(filename);
             }
         }
     }
