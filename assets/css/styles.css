@@ -152,8 +152,43 @@ p {
     margin-bottom: 20px;
 }
 
+.library-header-left {
+    text-align: left;
+    min-width: 0;
+    flex: 1;
+}
+
 .library-header h1 {
     margin: 0;
+}
+
+.current-folder {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.current-folder svg {
+    width: 12px;
+    height: 12px;
+    vertical-align: -1px;
+    margin-right: 4px;
+    opacity: 0.7;
+}
+
+.library-header-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.header-divider {
+    color: var(--muted);
+    font-size: 12px;
+    opacity: 0.5;
 }
 
 .link-btn {

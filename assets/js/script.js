@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const quickReadViewEl = document.getElementById('quickReadView');
     const footerCollapsedTextEl = document.getElementById('footerCollapsedText');
     const browserNoticeEl = document.getElementById('browserNotice');
+    const changeFolderBtn = document.getElementById('changeFolderBtn');
+    const currentFolderNameEl = document.getElementById('currentFolderName');
 
     let comicsDirectoryHandle = null;
     let isLibraryMode = false;
@@ -145,6 +147,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // change folder button
+    if (changeFolderBtn) {
+        changeFolderBtn.addEventListener('click', async () => {
+            try {
+                // always show directory picker to select a new folder
+                const dirHandle = await window.showDirectoryPicker({
+                    mode: 'read'
+                });
+
+                // explicitly request persistent permission
+                const permission = await dirHandle.requestPermission({ mode: 'read' });
+                if (permission !== 'granted') {
+                    console.error('Permission not granted');
+                    return;
+                }
+
+                comicsDirectoryHandle = dirHandle;
+                await saveDirectoryHandle(dirHandle);
+                await showLibraryMode();
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Error selecting folder:', err);
+                }
+            }
+        });
+    }
+
     // load directory handle on startup
     if (supportsFileSystemAccess) {
         loadDirectoryHandle().then(async (result) => {
@@ -182,6 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
         libraryViewEl.style.display = 'block';
         quickReadViewEl.style.display = 'none';
         footerCollapsedTextEl.textContent = 'Show library';
+
+        // display current folder name
+        if (currentFolderNameEl && comicsDirectoryHandle.name) {
+            currentFolderNameEl.innerHTML = `<svg viewBox="0 0 16 16" fill="currentColor"><path d="M1.75 1A1.75 1.75 0 000 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0016 13.25v-8.5A1.75 1.75 0 0014.25 3H7.5a.25.25 0 01-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75z"/></svg>${comicsDirectoryHandle.name}`;
+        }
 
         // reset button text in case it was changed
         const titleEl = selectFolderBtn.querySelector('.btn-title');
