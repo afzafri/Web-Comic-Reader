@@ -53,8 +53,15 @@
 
         <div id="libraryView" style="display:none;">
             <div class="library-header">
-                <h1>Your Comic Library</h1>
-                <button id="toggleUploadBtn" class="link-btn">Quick read a file instead</button>
+                <div class="library-header-left">
+                    <h1>Your Comic Library</h1>
+                    <div id="currentFolderName" class="current-folder"></div>
+                </div>
+                <div class="library-header-actions">
+                    <button id="changeFolderBtn" class="link-btn">Change folder</button>
+                    <span class="header-divider">•</span>
+                    <button id="toggleUploadBtn" class="link-btn">Quick read</button>
+                </div>
             </div>
 
             <div id="recentComics" style="display:none;">
