@@ -56,7 +56,7 @@ body:not(:has(#output[style*="display: block"])) {
     display: none !important;
 }
 
-button:focus-visible, a:focus-visible, select:focus-visible {
+button:focus-visible, a:focus-visible {
     outline: 3px solid var(--brand);
     outline-offset: 3px;
 }
@@ -75,84 +75,11 @@ button:disabled {
     margin-bottom: 24px;
 }
 
-.shelf-header > div:first-child {
-    min-width: 0;
-    flex: 1;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-left: auto;
-    min-width: 0;
-}
-
-.header-actions .link-btn {
-    padding-inline: 8px;
-}
-
-.collapse-btn.show ~ #quickReadView .header-actions {
-    padding-right: 20px;
-}
-
-.visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-}
-
-.app-settings {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    margin: 0;
-    color: var(--muted);
-    font-size: 13px;
-}
-
-.app-settings select {
-    width: 54px;
-    height: 28px;
-    padding: 3px 6px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--card);
-    color: var(--text);
-    font: inherit;
-}
-
-.eyebrow {
-    color: var(--brand);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    margin-bottom: 10px;
-}
-
-.shelf-header h1 {
-    font-size: clamp(24px, 4vw, 32px);
-    letter-spacing: -0.03em;
-}
-
-.shelf-header p {
-    margin: 4px 0 0;
-    font-size: 14px;
-}
-
 .shelf-toolbar {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
-}
-
-.shelf-toolbar {
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border);
     margin-bottom: 20px;
@@ -281,19 +208,11 @@ button:disabled {
 
 .collection-cover {
     height: 210px;
-    background: linear-gradient(145deg, #172554, #2563eb);
+    background: var(--brand);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-}
-
-.collection-card:nth-child(3n + 2) .collection-cover {
-    background: linear-gradient(145deg, #302438, #7c587c);
-}
-
-.collection-card:nth-child(3n + 3) .collection-cover {
-    background: linear-gradient(145deg, #173e3d, #408a7a);
 }
 
 .collection-cover span {
@@ -420,7 +339,6 @@ button:disabled {
 @media (prefers-color-scheme: dark) {
     .connection-status.connected { color: #86efac; }
     .connection-status.disconnected { color: #fcd34d; }
-    .link-btn, .eyebrow { color: #93c5fd; }
 }
 
 .collection-stats, .collection-last-read {
@@ -801,17 +719,6 @@ footer a:hover {
     transition: all .2s;
 }
 
-.reader-header {
-    display: none;
-}
-
-.wrap.collapsed .reader-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
 .footer-collapsed:hover {
     color: var(--text);
     background: rgba(0,0,0,.03);
@@ -920,7 +827,7 @@ footer a:hover {
 }
 
 #output a.last-read::before {
-    content: var(--last-read-label, 'Last read');
+    content: 'Last read';
     position: absolute;
     top: 10px;
     right: 10px;
@@ -961,7 +868,6 @@ footer a:hover {
     .wrap { padding: 24px 18px; }
     .library-header { align-items: flex-start; gap: 12px; flex-wrap: wrap; }
     .library-header-actions { flex-wrap: wrap; max-width: 100%; }
-    .header-actions { max-width: 100%; }
     .library-header .library-header-left { flex-basis: 100%; }
     .shelf-toolbar .muted { flex-basis: 100%; margin-left: 0; }
     .libraries-grid { grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 12px; }

@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     const el = (id) => document.getElementById(id);
-    const i18n = window.ComicReaderI18n;
-    const t = i18n.t;
     const wrap = document.querySelector('.wrap');
     const output = el('output');
     const folderInput = el('folderInput');
@@ -12,34 +10,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const storageKey = 'comic_reader_libraries';
     const access = new Map(); // Child handles and session Files stay in memory.
     const rootAccess = { handle: null, connected: false, needsPicker: false };
-    let lastNotice = null;
     let pendingConfirmation = null;
-    let dropzone = null;
     let state = readState();
     let activeLibraryId = null;
     let currentView = 'home';
     let pendingSelection = null;
     let busy = false;
-    let rootGeneration = 0;
     let reading = null;
     let comicRequest = 0;
     let readerGeneration = 0;
-    let gallery = null;
     let galleryElement = null;
     let galleryClickHandler = null;
-    let galleryObserver = null;
+    let archiveReader = null;
     let objectUrls = [];
 
     el('currYear').textContent = new Date().getFullYear();
     loadArchiveFormats(['rar', 'zip', 'tar']);
-    applyLanguage();
-    el('languageSelect').addEventListener('change', (event) => {
-        const saved = i18n.setLanguage(event.target.value);
-        applyLanguage();
-        renderHome();
-        if (currentView === 'library') renderLibrary();
-        if (!saved) notify('languageSaveFailed', {}, 'error');
-    });
+    el('browserNotice').hidden = supportsPersistentAccess;
+    el('browserNotice').textContent = canSelectFolders
+        ? 'Folder access is session-only. Reselect the root after reloading; saved reading history is kept. Empty folders are not included.'
+        : 'Folder selection is unavailable in this browser. Use Quick Read to open individual comics.';
     el('dismissMessageBtn').addEventListener('click', () => notify(''));
 
     el('selectRootBtn').addEventListener('click', () => chooseRoot(true));
@@ -70,11 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     el('collapseBtn').addEventListener('click', () => {
         wrap.classList.add('collapsed');
-        placeLanguageControl();
     });
     document.querySelector('.footer-collapsed').addEventListener('click', () => {
         wrap.classList.remove('collapsed');
-        placeLanguageControl();
         if (currentView === 'library') renderLibrary();
         else if (currentView === 'home') renderHome();
     });
@@ -98,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             await acceptRoot(name, groups, null, selection.openAfter);
         } catch (error) {
-            notify('scanFailed');
+            notify("Could not scan the root folder. Saved collections and history are unchanged.", "error");
             console.error(error);
         } finally {
             setBusy(false);
@@ -109,12 +97,12 @@ document.addEventListener('DOMContentLoaded', () => {
     folderInput.addEventListener('cancel', () => {
         const wasReconnecting = pendingSelection && state.root;
         pendingSelection = null;
-        if (wasReconnecting) notify('selectionCanceled', { name: state.root.name });
+        if (wasReconnecting) notify(`Selection canceled for "${state.root.name}". Saved data is unchanged.`);
     });
 
     if (window.Dropzone) {
         Dropzone.autoDiscover = false;
-        dropzone = new Dropzone('#dropzone', {
+        new Dropzone('#dropzone', {
             url: '#', acceptedFiles: '.cbr,.cbz,.cbt', createImageThumbnails: false,
             autoProcessQueue: false, previewsContainer: false, maxFiles: 1,
             init: function() {
@@ -124,13 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.removeFile(file);
                 });
                 this.on('error', (file) => {
-                    notify(!isComic(file.name) ? 'invalidFile'
-                        : file.size > this.options.maxFilesize * 1024 * 1024 ? 'uploadTooLarge' : 'uploadFailed', {}, 'error');
+                    notify(!isComic(file.name) ? "Select a CBR, CBZ, or CBT file."
+                        : file.size > this.options.maxFilesize * 1024 * 1024 ? "This file exceeds the file-size limit." : "Could not open the selected file. Try selecting it again.", 'error');
                     this.removeFile(file);
                 });
             }
         });
-        applyLanguage();
     }
 
     renderHome();
@@ -138,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         disconnectRoot();
         rootAccess.needsPicker = true;
         console.error('Could not restore the comics root:', error);
-        notify('restoreFailed');
+        notify("Could not restore folder access. Reconnect the root folder. Saved collections are unchanged.", "error");
     }).finally(() => {
         setBusy(false);
         renderHome();
@@ -151,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (saved?.version === 3 && Array.isArray(saved.libraries) && Array.isArray(saved.removedFolders)) return saved;
         } catch (error) {
             console.error('Could not read saved collections:', error);
-            notify('storageReadFailed');
+            notify("Could not read browser storage. Collections may not be saved across reloads.", "error");
         }
         return { version: 3, root: null, libraries: [], removedFolders: [], legacyImported: false };
     }
@@ -162,62 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         } catch (error) {
             console.error('Could not save collections:', error);
-            notify('storageSaveFailed');
+            notify("Could not save changes. Browser storage may be full or blocked; recent changes may be lost on reload.", "error");
             return false;
         }
     }
 
-    function notify(key, params = {}, kind = /Failed$|Denied$/.test(key) ? 'error' : 'info') {
-        lastNotice = key ? { key, params, kind } : null;
-        renderNotice();
-    }
-
-    function renderNotice() {
-        el('appMessage').hidden = !lastNotice;
-        el('appMessage').dataset.kind = lastNotice?.kind || 'info';
-        el('appMessageText').textContent = lastNotice ? t(lastNotice.key, lastNotice.params) : '';
-    }
-
-    function applyLanguage() {
-        document.documentElement.lang = i18n.language;
-        document.title = t('pageTitle');
-        el('languageSelect').value = i18n.language;
-        document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
-        document.querySelectorAll('[data-i18n-aria]').forEach((node) => { node.setAttribute('aria-label', t(node.dataset.i18nAria)); });
-        el('browserNotice').hidden = supportsPersistentAccess;
-        el('browserNotice').textContent = t(canSelectFolders ? 'sessionNotice' : 'noFolders');
-        el('footerCollapsedText').textContent = t(currentView === 'quick' ? 'quickRead' : currentView === 'library' ? 'showCollection' : 'showLibrary');
-        document.querySelectorAll('#output img[data-page]').forEach((image) => {
-            image.alt = t('page', { page: image.dataset.page });
-        });
-        output.style.setProperty('--last-read-label', JSON.stringify(t('lastReadBadge')));
-        if (dropzone) {
-            dropzone.options.dictInvalidFileType = t('invalidFile');
-            dropzone.options.dictFileTooBig = t('uploadTooLarge');
-            dropzone.options.dictResponseError = t('uploadFailed');
-        }
-        renderNotice();
-        renderConfirmation();
-        localizeGallery();
-    }
-
-    function localizeGallery() {
-        const labels = {
-            '.lg-close': 'readerClose', '.lg-next': 'readerNext', '.lg-prev': 'readerPrevious',
-            '.lg-fullscreen': 'readerFullscreen', '#lg-zoom-in': 'readerZoomIn', '#lg-zoom-out': 'readerZoomOut',
-            '#lg-actual-size': 'readerActualSize', '.lg-toogle-thumb': 'readerThumbnails',
-            '.lg-autoplay-button': 'readerAutoplay', '#lg-rotate-left': 'readerRotateLeft',
-            '#lg-rotate-right': 'readerRotateRight', '#lg-flip-hor': 'readerFlipHorizontal', '#lg-flip-ver': 'readerFlipVertical'
-        };
-        for (const [selector, key] of Object.entries(labels)) {
-            document.querySelectorAll(`.lg-outer ${selector}`).forEach((node) => {
-                node.title = t(key);
-                node.setAttribute('aria-label', t(key));
-            });
-        }
-        document.querySelectorAll('.lg-outer .lg-error-msg').forEach((node) => {
-            if (node.textContent !== t('readerLoadFailed')) node.textContent = t('readerLoadFailed');
-        });
+    function notify(message, kind = 'info') {
+        el('appMessage').hidden = !message;
+        el('appMessage').dataset.kind = kind;
+        el('appMessageText').textContent = message;
     }
 
     function connection(id) {
@@ -233,11 +173,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function libraryById(id) { return state.libraries.find((library) => library.id === id); }
     function isComic(name) { return /\.(cbr|cbz|cbt)$/i.test(name); }
     function isImage(name) { return /\.(jpe?g|png|gif|bmp|webp)$/i.test(name); }
-    function getMIME(name) {
-        const types = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-            gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp' };
-        return types[name.split('.').pop().toLowerCase()] || 'image/jpeg';
+    function getExt(filename) {
+        const ext = filename.split('.').pop();
+        return (ext === filename) ? '' : ext;
     }
+
+    function getMIME(filename) {
+        const ext = getExt(filename).toLowerCase();
+        const mimeTypes = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'bmp': 'image/bmp',
+            'webp': 'image/webp'
+        };
+        return mimeTypes[ext] || 'image/jpeg';
+    }
+
     function newId() {
         return crypto.randomUUID ? crypto.randomUUID() : `library-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     }
@@ -245,11 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return { id: newId(), name, folderName: name, inRoot: true, comics: [], history: {}, cover: null };
     }
 
-    function confirmCollectionAction(title, description, consequence, label, params = {}) {
+    function confirmCollectionAction(title, description, consequence, label) {
         if (pendingConfirmation) return Promise.resolve(false);
         return new Promise((resolve) => {
-            pendingConfirmation = { title, description, consequence, label, params, resolve, focus: document.activeElement };
-            renderConfirmation();
+            pendingConfirmation = { resolve, focus: document.activeElement };
+            el('collectionDialogTitle').textContent = title;
+            el('collectionDialogDescription').textContent = description;
+            el('collectionDialogConsequence').textContent = consequence;
+            el('confirmCollectionActionBtn').textContent = label;
             if (typeof collectionDialog.showModal === 'function') collectionDialog.showModal();
             else {
                 collectionDialog.classList.add('dialog-fallback');
@@ -259,15 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             el('cancelCollectionActionBtn').focus();
         });
-    }
-
-    function renderConfirmation() {
-        if (!pendingConfirmation) return;
-        const { title, description, consequence, label, params } = pendingConfirmation;
-        el('collectionDialogTitle').textContent = t(title, params);
-        el('collectionDialogDescription').textContent = t(description, params);
-        el('collectionDialogConsequence').textContent = t(consequence, params);
-        el('confirmCollectionActionBtn').textContent = t(label);
     }
 
     function finishConfirmation(accepted) {
@@ -289,9 +236,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const library = libraryById(id);
         if (!library) return;
         const hasAnother = state.libraries.some((other) => other.id !== id && other.folderName === library.folderName);
-        const confirmed = await confirmCollectionAction('removeTitle', 'removeDescription',
-            hasAnother ? 'removeDuplicate' : library.inRoot ? 'removePresent' : 'removeMissing',
-            'removeCollection', { name: library.name });
+        const consequence = hasAnother
+            ? 'The other saved collection with this folder name will remain.'
+            : (library.inRoot ? 'This collection was found in the last root scan. ' : '')
+                + 'This folder name will be excluded from future scans. '
+                + 'Use “Rediscover removed” to add it again without its previous history.';
+        const confirmed = await confirmCollectionAction(`Remove "${library.name}"?`,
+            'Remove its saved comic list, progress, last-read information, and thumbnails from this browser. '
+                + 'Folders and comic files are not changed or deleted.', consequence,
+            'Remove collection');
         if (confirmed && !busy) removeCollection(id);
     }
 
@@ -306,30 +259,30 @@ document.addEventListener('DOMContentLoaded', () => {
         // Persist before releasing access or updating the shelf; failed storage keeps the entry intact.
         if (!saveState()) {
             state = previous;
-            notify('removeFailed', { name: library.name }, 'error');
+            notify(`Could not remove "${library.name}". Browser storage may be full or blocked. The collection and history are unchanged.`, "error");
             return;
         }
         access.delete(id);
         if (activeLibraryId === id) { activeLibraryId = null; showHome(); }
         else renderHome();
-        notify('removed', { name: library.name }, 'success');
+        notify(`Removed "${library.name}" from the library. Folders and comic files are unchanged.`, "success");
         el(state.removedFolders.length ? 'rediscoverCollectionsBtn' : 'selectRootBtn').focus();
     }
 
     async function confirmRediscovery() {
         if (busy || !state.removedFolders.length) return;
-        const confirmed = await confirmCollectionAction('rediscoverTitle', 'rediscoverNames',
-            'rediscoverDescription', 'allowRediscovery', { names: state.removedFolders.join(', ') });
+        const confirmed = await confirmCollectionAction("Rediscover removed collections?", `Include these folder names in future scans: ${state.removedFolders.join(', ')}.`,
+            "Rescan or reconnect the root to add them. Previous history and thumbnails are not restored. Folders and comic files are unchanged.", 'Allow rediscovery');
         if (confirmed && !busy) {
             const previous = state.removedFolders;
             state.removedFolders = [];
             if (!saveState()) {
                 state.removedFolders = previous;
-                notify('rediscoverSaveFailed');
+                notify("Could not save changes. Removed folders remain excluded. Browser storage may be full or blocked.", "error");
                 return;
             }
             renderHome();
-            notify('rediscoverReady');
+            notify("Rescan or reconnect the root to add removed collections. Previous history is not restored.");
             el(state.root && !rootAccess.connected && canSelectFolders ? 'reconnectRootBtn' : 'selectRootBtn').focus();
         }
     }
@@ -404,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         catch (error) {
             console.error('Could not save the root handle:', error);
-            notify('handleSaveFailed');
+            notify("Could not save folder access. Reselect the root after reloading. Collection metadata is kept.", "error");
             return false;
         }
     }
@@ -413,11 +366,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const groups = new Map();
         for await (const entry of root.values()) {
             if (entry.kind !== 'directory') continue;
-            const files = new Map();
+            const names = [];
             for await (const comic of entry.values()) {
-                if (comic.kind === 'file' && isComic(comic.name)) files.set(comic.name, await comic.getFile());
+                if (comic.kind === 'file' && isComic(comic.name)) names.push(comic.name);
             }
-            groups.set(entry.name, { handle: entry, files });
+            groups.set(entry.name, { handle: entry, names });
         }
         return groups;
     }
@@ -450,8 +403,8 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const { library, folderName, group } of matches) {
             if (!state.libraries.includes(library)) state.libraries.push(library);
             Object.assign(library, { name: folderName, folderName, inRoot: true,
-                comics: Array.from(group.files.values(), (file) => ({ name: file.name, size: file.size }))
-                    .sort((a, b) => a.name.localeCompare(b.name, i18n.language, { numeric: true })) });
+                comics: Array.from(group.names || group.files.keys(), (name) => ({ name }))
+                    .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true }) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) });
             delete library.needsLegacyScan;
         }
         if (!state.legacyImported) {
@@ -472,16 +425,6 @@ document.addEventListener('DOMContentLoaded', () => {
         saveState();
         renderHome();
         if (currentView === 'library') renderLibrary();
-        const generation = ++rootGeneration;
-        generateCovers(matches.map((match) => match.library), generation);
-    }
-
-    async function generateCovers(libraries, generation) {
-        for (const library of libraries) {
-            if (generation !== rootGeneration || !rootAccess.connected) return;
-            if (libraryById(library.id) !== library) continue;
-            await ensureCover(library);
-        }
     }
 
     async function acceptRoot(name, groups, handle, openAfter) {
@@ -491,8 +434,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 try { sameRoot = await handle.isSameEntry(rootAccess.handle); }
                 catch (error) { console.info('Could not compare the previous root:', error); }
             }
-            if (!sameRoot && !await confirmCollectionAction('replaceRootTitle', 'replaceRootDescription',
-                'replaceRootConsequence', 'replaceRoot', { name, previous: state.root.name })) return;
+            if (!sameRoot && !await confirmCollectionAction("Replace root folder?", `Use "${name}" instead of "${state.root.name}" as the root folder.`,
+                "Matching collection names keep their history; missing collections remain saved.", 'Use this folder')) return;
         }
         await connectGroups(name, groups, handle);
         if (handle) {
@@ -507,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         notify('');
         if (!supportsPersistentAccess) {
             pendingSelection = { openAfter };
-            notify(state.root ? 'reconnectInstructions' : 'selectInstructions', { name: state.root?.name });
+            notify(state.root ? `Select "${state.root.name}" to reconnect all collections.` : "Select a root folder. Each direct child folder becomes a collection.");
             folderInput.click();
             return;
         }
@@ -518,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (permission !== 'granted') {
                     disconnectRoot();
                     rootAccess.needsPicker = true;
-                    notify('permissionDenied');
+                    notify("Folder permission was not granted. Try again to select the root. Saved collections are unchanged.", "error");
                     return;
                 }
                 const groups = await groupsFromHandle(rootAccess.handle);
@@ -535,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error.name !== 'AbortError') {
                 disconnectRoot();
                 rootAccess.needsPicker = true;
-                notify('accessFailed');
+                notify("Could not access the root folder. Reselect it to reconnect. Saved collections and progress are unchanged.", "error");
                 console.error(error);
             }
         } finally {
@@ -551,31 +494,25 @@ document.addEventListener('DOMContentLoaded', () => {
         el('initialView').style.display = view === 'home' ? 'block' : 'none';
         el('libraryView').style.display = view === 'library' ? 'block' : 'none';
         el('quickReadView').style.display = view === 'quick' ? 'block' : 'none';
-        el('footerCollapsedText').textContent = view === 'quick' ? t('quickRead') : view === 'library' ? t('showCollection') : t('showLibrary');
+        el('footerCollapsedText').textContent = view === 'quick' ? "Quick Read" : view === 'library' ? "Show collection" : "Show library";
         wrap.classList.remove('collapsed');
-        placeLanguageControl();
     }
 
-    function placeLanguageControl() {
-        const target = wrap.classList.contains('collapsed') ? 'readerHeaderActions'
-            : currentView === 'library' ? 'collectionHeaderActions'
-                : currentView === 'quick' ? 'quickReadHeaderActions' : 'libraryHeaderActions';
-        el(target).appendChild(document.querySelector('.app-settings'));
-    }
     function showHome() { setView('home'); renderHome(); }
     function showQuickRead() { setView('quick'); }
     function showLibrary(id) { activeLibraryId = id; setView('library'); renderLibrary(); }
 
     function historyEntries(library) {
         if (library.needsLegacyScan) return Object.entries(library.history).sort((a, b) => b[1].timestamp - a[1].timestamp);
+        // Filter the display only; keep missing comics' progress and thumbnails for future scans.
         return library.comics.filter((comic) => library.history[comic.name])
             .map((comic) => [comic.name, library.history[comic.name]])
             .sort((a, b) => b[1].timestamp - a[1].timestamp);
     }
 
     function progressText(data) {
-        if (!data) return t('notStarted');
-        return data.total_pages ? t('pageOf', { page: Math.min(data.last_page + 1, data.total_pages), total: data.total_pages }) : t('page', { page: data.last_page + 1 });
+        if (!data) return "Not started";
+        return data.total_pages ? `Page ${Math.min(data.last_page + 1, data.total_pages)} of ${data.total_pages}` : `Page ${data.last_page + 1}`;
     }
 
     function coverElement(thumbnail, name) {
@@ -600,22 +537,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const discovered = state.libraries.filter((library) => library.inRoot);
         const count = discovered.reduce((total, library) => total + library.comics.length, 0);
         const savedMissing = state.libraries.length - discovered.length;
-        el('librarySummary').textContent = t('summary', { collections: discovered.length, comics: count }) + (savedMissing ? t('missingCount', { count: savedMissing }) : '');
-        el('selectRootBtn').textContent = state.root ? t('chooseRoot') : t('selectComics');
+        el('librarySummary').textContent = `${discovered.length} collections · ${count} comics` + (savedMissing ? ` · ${savedMissing} unavailable` : '');
+        el('selectRootBtn').textContent = state.root ? "Choose root folder" : "Select Comics Folder";
         el('selectRootBtn').classList.toggle('primary', !state.root);
         el('reconnectRootBtn').hidden = !state.root || rootAccess.connected || !canSelectFolders;
-        el('reconnectRootBtn').textContent = t('reconnectNamed', { name: state.root?.name || t('rootFolder') });
+        el('reconnectRootBtn').textContent = `Reconnect ${state.root?.name || "Root Folder"}`;
         el('rootFolderStatus').textContent = state.root
-            ? `${state.root.name} · ${rootAccess.connected ? (rootAccess.handle ? t('connected') : t('sessionConnected')) : t('reconnectStatus')}`
-            : t('rootInstructions');
+            ? `${state.root.name} · ${rootAccess.connected ? (rootAccess.handle ? "Connected" : "Connected for this session") : "Reconnect to access collections"}`
+            : "Select a root folder containing collection folders.";
         el('rediscoverCollectionsBtn').hidden = !state.removedFolders.length;
-        el('rediscoverCollectionsBtn').textContent = t('rediscoverCount', { count: state.removedFolders.length });
+        el('rediscoverCollectionsBtn').textContent = `Rediscover removed (${state.removedFolders.length})`;
         el('emptyLibraries').hidden = state.libraries.length > 0;
-        el('emptyLibraries').querySelector('h2').textContent = state.removedFolders.length ? t('noSavedCollections') : state.root ? t('noCollectionsFound') : t('noCollections');
+        el('emptyLibraries').querySelector('h2').textContent = state.removedFolders.length ? "No saved collections" : state.root ? "No collections found" : "No collections";
         el('emptyLibraries').querySelector('p').textContent = state.root
-            ? t('emptyRoot', { name: state.root.name }) + (state.removedFolders.length ? t('emptyRootRemoved') : '')
-            : t('selectInstructions');
-        for (const library of [...state.libraries].sort((a, b) => Number(b.inRoot) - Number(a.inRoot) || a.name.localeCompare(b.name, i18n.language, { numeric: true }))) {
+            ? `Add folders directly inside "${state.root.name}", then reselect the root.` + (state.removedFolders.length ? " Use “Rediscover removed” to include removed folders." : '')
+            : "Select a root folder. Each direct child folder becomes a collection.";
+        for (const library of [...state.libraries].sort((a, b) => Number(b.inRoot) - Number(a.inRoot) || a.name.localeCompare(b.name, 'en', { numeric: true }) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
             const runtime = connection(library.id);
             const entries = historyEntries(library);
             const latest = entries[0];
@@ -624,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'collection-card';
             const open = document.createElement('button');
             open.className = 'collection-open';
-            open.setAttribute('aria-label', t('openCollection', { name: library.name }));
+            open.setAttribute('aria-label', `Open ${library.name}`);
             open.appendChild(coverElement(library.cover || entries.find(([, data]) => data.thumbnail)?.[1].thumbnail, library.name));
             const title = document.createElement('h2');
             title.textContent = library.name;
@@ -635,16 +572,16 @@ document.addEventListener('DOMContentLoaded', () => {
             details.className = 'collection-details';
             const status = document.createElement('span');
             status.className = `connection-status ${runtime.connected ? 'connected' : 'disconnected'}`;
-            status.textContent = runtime.connected ? (rootAccess.handle ? t('connected') : t('sessionConnected'))
-                : !state.root ? t('chooseParent') : !library.inRoot ? t('missingRoot') : t('reconnectRootFolder');
+            status.textContent = runtime.connected ? (rootAccess.handle ? "Connected" : "Connected for this session")
+                : !state.root ? "Choose parent folder" : !library.inRoot ? "Not found in root" : "Reconnect root folder";
             details.appendChild(status);
             const stats = document.createElement('p');
             stats.className = 'collection-stats';
-            stats.textContent = library.needsLegacyScan ? t('connectCount') : t('collectionStats', { count: library.comics.length, started: entries.length, finished: completed });
+            stats.textContent = library.needsLegacyScan ? "Connect to count comics" : `${library.comics.length} comics · ${entries.length} started · ${completed} finished`;
             details.appendChild(stats);
             const lastRead = document.createElement('p');
             lastRead.className = 'collection-last-read';
-            lastRead.textContent = latest ? `${latest[0]} · ${progressText(latest[1])}\n${t('lastRead', { time: formatTimestamp(latest[1].timestamp) })}` : t('noHistory');
+            lastRead.textContent = latest ? `${latest[0]} · ${progressText(latest[1])}\nLast read ${formatTimestamp(latest[1].timestamp)}` : "No reading history";
             details.appendChild(lastRead);
             const progress = document.createElement('progress');
             progress.max = library.comics.length || 1;
@@ -652,12 +589,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = library.history[comic.name];
                 return total + (data?.total_pages ? Math.min((data.last_page + 1) / data.total_pages, 1) : 0);
             }, 0);
-            progress.setAttribute('aria-label', t('progressLabel', { name: library.name }));
+            progress.setAttribute('aria-label', `Known reading progress for ${library.name}`);
             details.appendChild(progress);
             const remove = document.createElement('button');
             remove.className = 'link-btn remove-collection-btn';
-            remove.textContent = t('removeCollection');
-            remove.setAttribute('aria-label', t('removeLabel', { name: library.name }));
+            remove.textContent = "Remove collection";
+            remove.setAttribute('aria-label', `Remove ${library.name} from saved library`);
             remove.setAttribute('data-collection-action', '');
             remove.addEventListener('click', () => confirmRemoval(library.id));
             details.appendChild(remove);
@@ -672,16 +609,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!library) { showHome(); return; }
         const runtime = connection(library.id);
         el('libraryTitle').textContent = library.name;
-        el('currentFolderName').textContent = `${t('comicsCount', { count: library.comics.length })}${state.root ? ` · ${state.root.name}` : ''} · ${runtime.connected ? (rootAccess.handle ? t('connected') : t('sessionAccess')) : t('unavailable')}`;
+        el('currentFolderName').textContent = `${library.comics.length} comics${state.root ? ` · ${state.root.name}` : ''} · ${runtime.connected ? (rootAccess.handle ? "Connected" : "Session access") : "Unavailable"}`;
         el('reconnectLibraryBtn').hidden = runtime.connected;
-        el('reconnectLibraryBtn').textContent = !state.root ? t('selectRoot') : rootAccess.connected ? t('rescanRoot') : t('reconnectRoot');
+        el('reconnectLibraryBtn').textContent = !state.root ? "Select root folder" : rootAccess.connected ? "Rescan root" : "Reconnect root";
         el('chooseRootBtn').hidden = !canSelectFolders;
         el('libraryConnectionNotice').hidden = runtime.connected;
         el('libraryConnectionNotice').textContent = canSelectFolders
-            ? !state.root ? t('librarySelectNotice')
-                : !library.inRoot ? t('missingNotice', { name: state.root.name })
-                : t('reconnectNotice', { name: state.root.name })
-            : t('libraryUnsupported');
+            ? !state.root ? "Select the root folder to reconnect saved collections."
+                : !library.inRoot ? `Collection not found in "${state.root.name}". Restore its folder and rescan the root. History is kept.`
+                : `Reconnect "${state.root.name}" to access all collections.`
+            : "Use a browser with folder selection support to reconnect. Saved history is kept.";
         const recent = historyEntries(library).slice(0, 5);
         el('recentComicsList').replaceChildren(...recent.map(([name]) => comicRow(library, name)));
         el('recentComics').style.display = recent.length ? 'block' : 'none';
@@ -690,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!library.comics.length) {
             const empty = document.createElement('p');
             empty.className = 'empty-comics';
-            empty.textContent = library.needsLegacyScan ? t('legacyScan') : t('emptyComics');
+            empty.textContent = library.needsLegacyScan ? "Select the root folder to list comics." : "No supported comics in this folder. Nested folders are ignored.";
             el('allComicsList').appendChild(empty);
         }
         setBusy(busy);
@@ -745,9 +682,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (request !== comicRequest) return;
             if (error.name === 'NotAllowedError' || error.name === 'SecurityError') {
                 disconnectRoot();
-                notify('reconnectComics');
+                notify("Reconnect the root folder to access comics.");
             } else {
-                notify('comicReadFailed');
+                notify("Could not read this comic. Reselect the root to refresh the list. Progress is kept.", "error");
             }
             renderHome();
             renderLibrary();
@@ -755,11 +692,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openArchive(file) {
-        return new Promise((resolve, reject) => archiveOpenFile(file, (archive, error) => archive ? resolve(archive) : reject(error)));
+        // The vendor's archiveOpenFile has no read-error or abort callback.
+        // Keep its archive decoder, but handle disconnected files and reader cleanup here.
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            archiveReader = reader;
+            reader.onload = () => {
+                if (archiveReader === reader) archiveReader = null;
+                try { resolve(archiveOpenArrayBuffer(file.name, reader.result)); }
+                catch (error) { reject(error); }
+            };
+            reader.onerror = () => {
+                if (archiveReader === reader) archiveReader = null;
+                reject(reader.error || new Error('Could not read comic file'));
+            };
+            reader.onabort = () => reject(new DOMException('Reading canceled', 'AbortError'));
+            reader.readAsArrayBuffer(file.slice());
+        });
     }
     function readEntry(entry) {
         return new Promise((resolve, reject) => entry.readData((data, error) => error ? reject(error)
             : resolve(new Blob([data], { type: getMIME(entry.name) }))));
+    }
+
+    async function readContents(entries, generation, loadingProgressElement) {
+        const blobs = new Array(entries.length);
+        let next = 0;
+        let completed = 0;
+        let failed = false;
+        loadingProgressElement.textContent = `Reading 0/${entries.length} pages`;
+
+        async function readPages() {
+            while (!failed && generation === readerGeneration && next < entries.length) {
+                const index = next++;
+                try {
+                    const blob = await readEntry(entries[index]);
+                    if (failed || generation !== readerGeneration) return;
+                    // Store by archive position, but count successful completions independently.
+                    blobs[index] = blob;
+                    loadingProgressElement.textContent = `Reading ${++completed}/${entries.length} pages`;
+                    // Yield so even synchronous archive callbacks allow progress to paint.
+                    await new Promise((resolve) => setTimeout(resolve, 0));
+                } catch (error) {
+                    failed = true;
+                    throw error;
+                }
+            }
+        }
+
+        await Promise.all(Array.from({ length: Math.min(3, entries.length) }, readPages));
+        return blobs;
     }
 
     async function thumbnailFromBlob(blob) {
@@ -779,39 +761,23 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally { URL.revokeObjectURL(url); }
     }
 
-    async function ensureCover(library) {
-        if (library.cover || !library.comics.length) return;
-        try {
-            const file = await getComicFile(library, library.comics[0].name);
-            const archive = await openArchive(file);
-            const entry = archive.entries.find((item) => isImage(item.name));
-            if (!entry) return;
-            const thumbnail = await thumbnailFromBlob(await readEntry(entry));
-            if (libraryById(library.id) !== library) return;
-            library.cover = thumbnail;
-            saveState();
-            renderHome();
-        } catch (error) { console.info('Cover will be generated when a comic is read:', error); }
-    }
-
     async function openComic(file, libraryId = null) {
         clearReader();
         const context = { libraryId, name: file.name, page: libraryById(libraryId)?.history[file.name]?.last_page || 0, totalPages: 0 };
         reading = context;
         const generation = readerGeneration;
         wrap.classList.add('collapsed');
-        placeLanguageControl();
         el('collapseBtn').classList.add('show');
-        const progressText = document.querySelector('.progress-text');
+        const loadingProgressElement = document.querySelector('.progress-text');
         const loading = document.querySelector('.se-pre-con');
-        progressText.textContent = t('readingComic');
+        loadingProgressElement.textContent = 'Reading 0/0 pages';
         loading.style.display = 'block';
         try {
             const archive = await openArchive(file);
             if (generation !== readerGeneration) return;
             const entries = archive.entries.filter((entry) => isImage(entry.name));
-            if (!entries.length) throw Object.assign(new Error('No images'), { translationKey: 'noImages' });
-            const blobs = await Promise.all(entries.map(readEntry));
+            if (!entries.length) throw new Error('No images');
+            const blobs = await readContents(entries, generation, loadingProgressElement);
             if (generation !== readerGeneration) return;
             context.totalPages = blobs.length;
             context.page = Math.min(context.page, blobs.length - 1);
@@ -819,8 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title.textContent = file.name;
             const hint = document.createElement('p');
             hint.className = 'reader-hint';
-            hint.dataset.i18n = 'readerHint';
-            hint.textContent = t('readerHint');
+            hint.textContent = 'Click on the image to enlarge';
             const pages = document.createElement('div');
             galleryElement = pages;
             // A separate gallery element prevents delayed events from an old comic affecting a new one.
@@ -833,25 +798,26 @@ document.addEventListener('DOMContentLoaded', () => {
             pages.addEventListener('onCloseAfter', () => {
                 if (generation === readerGeneration) refreshVisibleLibrary();
             });
-            pages.addEventListener('onAfterOpen', () => {
-                localizeGallery();
-                galleryObserver?.disconnect();
+            pages.addEventListener('onBeforeClose', () => {
+                if (generation !== readerGeneration) return;
+                // The gallery fades out before removing its overlay. Ignore clicks during that fade
+                // so its thumbnail module cannot receive a second close event.
                 const outer = document.querySelector('.lg-outer');
-                if (outer) {
-                    galleryObserver = new MutationObserver(localizeGallery);
-                    galleryObserver.observe(outer, { childList: true, subtree: true });
-                }
+                if (outer) outer.style.pointerEvents = 'none';
             });
             output.append(title, hint, pages);
-            for (const blob of blobs) {
+            for (const [index, blob] of blobs.entries()) {
+                if (index && index % 20 === 0) {
+                    await new Promise((resolve) => setTimeout(resolve, 0));
+                    if (generation !== readerGeneration) return;
+                }
                 const url = URL.createObjectURL(blob);
                 objectUrls.push(url);
                 const link = document.createElement('a');
                 link.href = url;
                 const image = document.createElement('img');
                 image.className = 'imgUrl';
-                image.dataset.page = objectUrls.length;
-                image.alt = t('page', { page: objectUrls.length });
+                image.alt = `Page ${objectUrls.length}`;
                 image.src = url;
                 link.appendChild(image);
                 pages.appendChild(link);
@@ -863,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!link) return;
                 event.preventDefault();
                 document.removeEventListener('click', galleryClickHandler);
-                gallery = lightGallery(pages, {
+                lightGallery(pages, {
                     selector: 'a', zoom: true, fullScreen: true, download: false, enableTouch: true,
                     thumbnail: true, animateThumb: true, showThumbByDefault: true,
                     autoplay: false, autoplayControls: true, rotate: true
@@ -879,6 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (context.libraryId) {
                 thumbnailFromBlob(blobs[0]).then((thumbnail) => {
+                    if (generation !== readerGeneration) return;
                     const library = libraryById(context.libraryId);
                     const saved = library?.history[context.name];
                     if (!saved) return;
@@ -891,8 +858,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             if (generation !== readerGeneration) return;
             const message = document.createElement('p');
-            message.dataset.i18n = error.translationKey || 'openComicFailed';
-            message.textContent = t(message.dataset.i18n);
+            message.textContent = error.message === 'No images'
+                ? 'This archive contains no supported images.'
+                : 'Could not open this comic. The file may be damaged or unsupported.';
             console.error('Could not open comic:', error);
             output.appendChild(message);
             output.style.display = 'block';
@@ -901,15 +869,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function saveReading(context, thumbnail = null) {
+    function saveReading(context) {
         const library = libraryById(context.libraryId);
         if (!library || !context.totalPages) return;
         const previous = library.history[context.name];
         library.history[context.name] = {
             last_page: context.page, total_pages: context.totalPages,
-            timestamp: Date.now(), thumbnail: thumbnail || previous?.thumbnail || null
+            timestamp: Date.now(), thumbnail: previous?.thumbnail || null
         };
-        if (!library.cover && thumbnail) library.cover = thumbnail;
         saveState();
     }
 
@@ -923,12 +890,13 @@ document.addEventListener('DOMContentLoaded', () => {
         ++comicRequest;
         ++readerGeneration;
         reading = null;
+        if (archiveReader) {
+            archiveReader.abort();
+            archiveReader = null;
+        }
         if (galleryClickHandler) document.removeEventListener('click', galleryClickHandler);
-        galleryObserver?.disconnect();
-        galleryObserver = null;
-        const galleryInstance = window.lgData?.[galleryElement?.getAttribute('lg-uid')] || gallery;
+        const galleryInstance = window.lgData?.[galleryElement?.getAttribute('lg-uid')];
         if (galleryInstance?.destroy) galleryInstance.destroy(true);
-        gallery = null;
         galleryElement = null;
         objectUrls.forEach((url) => URL.revokeObjectURL(url));
         objectUrls = [];
@@ -943,11 +911,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatTimestamp(timestamp) {
-        const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
-        if (!minutes) return t('justNow');
-        const relative = new Intl.RelativeTimeFormat(i18n.language, { numeric: 'always' });
-        if (minutes >= 1440) return relative.format(-Math.floor(minutes / 1440), 'day');
-        if (minutes >= 60) return relative.format(-Math.floor(minutes / 60), 'hour');
-        return relative.format(-minutes, 'minute');
+        const now = Date.now();
+        const diff = now - timestamp;
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+
+        if (days > 0) return `${days}d ago`;
+        if (hours > 0) return `${hours}h ago`;
+        if (minutes > 0) return `${minutes}m ago`;
+        return 'Just now';
     }
 });

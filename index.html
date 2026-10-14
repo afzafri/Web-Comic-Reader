@@ -11,34 +11,23 @@
 <body>
     <div class="se-pre-con">
         <div class="spinner"></div>
-        <div class="progress-text" data-i18n="readingComic">Reading comic…</div>
+        <div class="progress-text" role="status" aria-live="polite">Reading 0/0 pages</div>
     </div>
 
     <div class="wrap">
-        <button class="collapse-btn" id="collapseBtn" aria-label="Hide controls" data-i18n-aria="hideControls">
+        <button class="collapse-btn" id="collapseBtn" aria-label="Hide controls">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <line x1="2" y1="7" x2="12" y2="7"/>
             </svg>
         </button>
         <div id="appMessage" class="app-message" role="status" aria-live="polite" hidden>
             <span id="appMessageText"></span>
-            <button id="dismissMessageBtn" class="dismiss-message" aria-label="Dismiss notification" data-i18n-aria="dismiss">×</button>
+            <button id="dismissMessageBtn" class="dismiss-message" aria-label="Dismiss notification">×</button>
         </div>
         <div id="initialView">
             <div class="shelf-header">
-                <div>
-                    <h1 data-i18n="libraryTitle">Comic Library</h1>
-                </div>
-                <div id="libraryHeaderActions" class="header-actions">
-                    <button id="quickReadBtn" class="link-btn" data-i18n="quickRead">Quick Read</button>
-                    <div class="app-settings">
-                        <label for="languageSelect" class="visually-hidden" data-i18n="language">Language</label>
-                        <select id="languageSelect">
-                            <option value="en" lang="en" title="English">EN</option>
-                            <option value="tr" lang="tr" title="Türkçe">TR</option>
-                        </select>
-                    </div>
-                </div>
+                <h1>Your Comic Library</h1>
+                <button id="quickReadBtn" class="link-btn">Quick Read</button>
             </div>
             <div class="shelf-toolbar">
                 <button id="selectRootBtn" class="action-btn primary" disabled>Select Comics Folder</button>
@@ -60,57 +49,53 @@
         <div id="libraryView" style="display:none;">
             <div class="library-header">
                 <div class="library-header-left">
-                    <button id="allLibrariesBtn" class="link-btn back-link" data-i18n="allCollections">&larr; All Collections</button>
+                    <button id="allLibrariesBtn" class="link-btn back-link">&larr; All Collections</button>
                     <h1 id="libraryTitle"></h1>
                     <div id="currentFolderName" class="current-folder"></div>
                 </div>
-                <div id="collectionHeaderActions" class="library-header-actions">
+                <div class="library-header-actions">
                     <button id="reconnectLibraryBtn" class="link-btn">Reconnect root</button>
-                    <button id="chooseRootBtn" class="link-btn" data-i18n="chooseRoot">Choose root folder</button>
-                    <button id="removeLibraryBtn" class="link-btn remove-collection-btn" data-collection-action data-i18n="removeCollection">Remove collection</button>
+                    <button id="chooseRootBtn" class="link-btn">Choose root folder</button>
+                    <button id="removeLibraryBtn" class="link-btn remove-collection-btn" data-collection-action>Remove collection</button>
                     <span class="header-divider">•</span>
-                    <button id="toggleUploadBtn" class="link-btn" data-i18n="quickRead">Quick Read</button>
+                    <button id="toggleUploadBtn" class="link-btn">Quick Read</button>
                 </div>
             </div>
 
             <div id="libraryConnectionNotice" class="browser-notice" hidden></div>
 
             <div id="recentComics" style="display:none;">
-                <h3 data-i18n="recentlyRead">Recently Read</h3>
+                <h3>Recently Read</h3>
                 <div id="recentComicsList"></div>
             </div>
 
             <div id="allComics" style="display:none;">
-                <h3 data-i18n="allComics">All Comics</h3>
+                <h3>All Comics</h3>
                 <div id="allComicsList"></div>
             </div>
         </div>
 
         <div id="quickReadView" style="display:none;">
             <div class="library-header">
-                <h1 data-i18n="quickRead">Quick Read</h1>
-                <div id="quickReadHeaderActions" class="header-actions">
-                    <button id="backToLibraryBtn" class="link-btn" data-i18n="allCollections">&larr; All Collections</button>
-                </div>
+                <h1>Quick Read</h1>
+                <button id="backToLibraryBtn" class="link-btn">&larr; All Collections</button>
             </div>
             <form id="dropzone" class="dropzone">
                 <div class="dz-message">
-                    <span data-i18n="dropFile">Select or drop a comic file</span>
-                    <div class="hint" data-i18n="quickHint">CBR, CBZ, CBT · Progress is not saved</div>
+                    Click to select, or drop files here
+                    <div class="hint">(cbr, cbz, cbt only) • Progress won't be saved</div>
                 </div>
             </form>
         </div>
         <footer class="footer-default">
             Afif Zafri 2017 &ndash; <span id="currYear"></span>
-            <a href="https://github.com/afzafri/Web-Comic-Reader" target="_blank" aria-label="View source on GitHub" data-i18n-aria="sourceLink">
+            <a href="https://github.com/afzafri/Web-Comic-Reader" target="_blank" aria-label="View source on GitHub">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-left: 6px;">
                     <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
                 </svg>
             </a>
         </footer>
-        <div id="readerHeaderActions" class="reader-header">
-            <div class="footer-collapsed" id="footerCollapsedText">Show library</div>
-        </div>
+        <div class="footer-collapsed" id="footerCollapsedText">Show library</div>
     </div>
 
     <div id="output"></div>
@@ -121,7 +106,7 @@
         <p id="collectionDialogDescription"></p>
         <p id="collectionDialogConsequence" class="dialog-consequence"></p>
         <div class="dialog-actions">
-            <button id="cancelCollectionActionBtn" class="action-btn" type="button" autofocus data-i18n="cancel">Cancel</button>
+            <button id="cancelCollectionActionBtn" class="action-btn" type="button" autofocus>Cancel</button>
             <button id="confirmCollectionActionBtn" class="action-btn" type="button">Remove collection</button>
         </div>
     </dialog>
@@ -134,7 +119,6 @@
     <script src="https://cdn.jsdelivr.net/npm/lg-autoplay.js@1.2.0/dist/lg-autoplay.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lg-rotate.js@1.2.0/dist/lg-rotate.min.js"></script>
     <script src="https://unpkg.com/dropzone/dist/dropzone-min.js"></script>
-    <script src="./assets/js/i18n.js"></script>
     <script src="./assets/js/script.js"></script>
 </body>
 </html>
