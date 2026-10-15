@@ -15,11 +15,12 @@
     </div>
 
     <div class="wrap">
-        <button class="collapse-btn" id="collapseBtn" aria-label="Hide controls">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <line x1="2" y1="7" x2="12" y2="7"/>
-            </svg>
-        </button>
+        <div class="reader-bar">
+            <button id="readerBackBtn" class="link-btn reader-back"></button>
+            <span class="reader-label">Reading</span>
+            <span id="readerTitle" class="reader-title"></span>
+            <button id="readerToggleBtn" class="link-btn reader-toggle" aria-expanded="false"></button>
+        </div>
         <div id="appMessage" class="app-message" role="status" aria-live="polite" hidden>
             <span id="appMessageText"></span>
             <button id="dismissMessageBtn" class="dismiss-message" aria-label="Dismiss notification">×</button>
@@ -95,7 +96,6 @@
                 </svg>
             </a>
         </footer>
-        <div class="footer-collapsed" id="footerCollapsedText">Show library</div>
     </div>
 
     <div id="output"></div>

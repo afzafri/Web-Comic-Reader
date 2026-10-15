@@ -454,38 +454,6 @@ progress::-moz-progress-bar { background: var(--brand); }
 .empty-comics { padding: 25px 15px; font-size: 14px; line-height: 1.7; }
 .reader-hint { font-size: 13px; margin: 8px 0 20px; }
 
-.collapse-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all .2s;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.6;
-}
-
-.collapse-btn:hover {
-    opacity: 1;
-    background: var(--border);
-}
-
-.collapse-btn.show {
-    display: flex;
-}
-
-.wrap.collapsed .collapse-btn {
-    display: none;
-}
-
 h1 {
     font-size: 20px;
     font-weight: 600;
@@ -780,32 +748,67 @@ footer a:hover {
     color: var(--text);
 }
 
-.footer-collapsed {
+.reader-bar {
     display: none;
-    text-align: center;
-    color: var(--muted);
-    font-size: 14px;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    transition: all .2s;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
 }
 
-.footer-collapsed:hover {
-    color: var(--text);
-    background: rgba(0,0,0,.03);
+.reader-back {
+    flex-shrink: 0;
+    margin-left: -12px; /* Align the label with the panel's content edge. */
+    max-width: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-@media (prefers-color-scheme: dark) {
-    .footer-collapsed:hover {
-        background: rgba(255,255,255,.05);
-    }
+.reader-toggle {
+    flex-shrink: 0;
+    margin: 0 -12px 0 auto;
+    white-space: nowrap;
 }
 
-.footer-collapsed::before {
-    content: '▼ ';
+.reader-toggle::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: 8px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    vertical-align: 3px;
+}
+
+.reader-toggle[aria-expanded="true"]::after {
+    transform: rotate(-135deg);
+    vertical-align: -1px;
+}
+
+.reader-label {
+    display: none;
+    flex-shrink: 0;
     font-size: 10px;
-    margin-right: 4px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.wrap.reading:not(.collapsed) .reader-label {
+    display: inline;
+}
+
+.reader-title {
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .wrap.collapsed {
@@ -819,8 +822,15 @@ footer a:hover {
     display: none !important;
 }
 
-.wrap.collapsed .footer-collapsed {
-    display: block;
+.wrap.reading .reader-bar {
+    display: flex;
+}
+
+/* With the panel expanded, separate the bar from the view below it. */
+.wrap.reading:not(.collapsed) .reader-bar {
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
 }
 
 .se-pre-con {

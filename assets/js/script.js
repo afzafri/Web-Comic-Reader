@@ -58,11 +58,16 @@ document.addEventListener('DOMContentLoaded', () => {
             (document.activeElement === cancel ? el('confirmCollectionActionBtn') : cancel).focus();
         }
     });
-    el('collapseBtn').addEventListener('click', () => {
-        wrap.classList.add('collapsed');
+    // Closing the reader returns to the view the comic was opened from.
+    el('readerBackBtn').addEventListener('click', () => {
+        if (currentView === 'library') showLibrary(activeLibraryId);
+        else if (currentView === 'quick') showQuickRead();
+        else showHome();
     });
-    document.querySelector('.footer-collapsed').addEventListener('click', () => {
-        wrap.classList.remove('collapsed');
+    // Show or hide the panel above the open comic without closing it.
+    el('readerToggleBtn').addEventListener('click', () => {
+        wrap.classList.toggle('collapsed');
+        updateReaderToggle();
         if (currentView === 'library') renderLibrary();
         else if (currentView === 'home') renderHome();
     });
@@ -511,7 +516,6 @@ document.addEventListener('DOMContentLoaded', () => {
         el('initialView').style.display = view === 'home' ? 'block' : 'none';
         el('libraryView').style.display = view === 'library' ? 'block' : 'none';
         el('quickReadView').style.display = view === 'quick' ? 'block' : 'none';
-        el('footerCollapsedText').textContent = view === 'quick' ? "Quick Read" : view === 'library' ? "Show collection" : "Show library";
         wrap.classList.remove('collapsed');
     }
 
@@ -808,8 +812,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const context = { libraryId, name: file.name, page: libraryById(libraryId)?.history[file.name]?.last_page || 0, totalPages: 0 };
         reading = context;
         const generation = readerGeneration;
-        wrap.classList.add('collapsed');
-        el('collapseBtn').classList.add('show');
+        wrap.classList.add('collapsed', 'reading');
+        el('readerBackBtn').dataset.label = `← ${libraryById(libraryId)?.name || 'Quick Read'}`;
+        updateReaderToggle();
+        el('readerTitle').textContent = file.name;
+        el('readerTitle').title = file.name;
         const loadingProgressElement = document.querySelector('.progress-text');
         const loading = document.querySelector('.se-pre-con');
         loadingProgressElement.textContent = 'Reading 0/0 pages';
@@ -823,8 +830,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (generation !== readerGeneration) return;
             context.totalPages = blobs.length;
             context.page = Math.min(context.page, blobs.length - 1);
-            const title = document.createElement('b');
-            title.textContent = file.name;
             const hint = document.createElement('p');
             hint.className = 'reader-hint';
             hint.textContent = 'Click on the image to enlarge';
@@ -847,7 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const outer = document.querySelector('.lg-outer');
                 if (outer) outer.style.pointerEvents = 'none';
             });
-            output.append(title, hint, pages);
+            output.append(hint, pages);
             for (const [index, blob] of blobs.entries()) {
                 if (index && index % 20 === 0) {
                     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -945,7 +950,15 @@ document.addEventListener('DOMContentLoaded', () => {
         output.replaceChildren();
         output.style.display = 'none';
         document.querySelector('.se-pre-con').style.display = 'none';
-        el('collapseBtn').classList.remove('show');
+        wrap.classList.remove('reading');
+    }
+
+    function updateReaderToggle() {
+        const collapsed = wrap.classList.contains('collapsed');
+        // With the panel open its destination is already on screen, so name the action instead.
+        el('readerBackBtn').textContent = collapsed ? el('readerBackBtn').dataset.label : '✕ Close comic';
+        el('readerToggleBtn').textContent = collapsed ? `Show ${currentView === 'quick' ? 'Quick Read' : currentView === 'library' ? 'collection' : 'library'}` : 'Hide';
+        el('readerToggleBtn').setAttribute('aria-expanded', String(!collapsed));
     }
 
     function highlightPage(index) {
