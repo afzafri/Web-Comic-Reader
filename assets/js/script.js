@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!library) { showHome(); return; }
         const runtime = connection(library.id);
         el('libraryTitle').textContent = library.name;
-        el('currentFolderName').textContent = `${library.comics.length} comics${state.root ? ` · ${state.root.name}` : ''} · ${runtime.connected ? (rootAccess.handle ? "Connected" : "Session access") : "Unavailable"}`;
+        el('currentFolderName').textContent = `${library.comics.length} comics${state.root && state.root.name !== library.name ? ` · ${state.root.name}` : ''} · ${runtime.connected ? (rootAccess.handle ? "Connected" : "Session access") : "Unavailable"}`;
         el('reconnectLibraryBtn').hidden = runtime.connected;
         el('reconnectLibraryBtn').textContent = !state.root ? "Select root folder" : rootAccess.connected ? "Rescan root" : "Reconnect root";
         el('chooseRootBtn').hidden = !canSelectFolders;

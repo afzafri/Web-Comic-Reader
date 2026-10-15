@@ -181,6 +181,7 @@ button:disabled {
 }
 
 .collection-card {
+    position: relative;
     min-width: 0;
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -204,6 +205,22 @@ button:disabled {
     color: var(--text);
     cursor: pointer;
     text-align: left;
+}
+
+/* Stretch the open button over the whole card; Remove sits above it. */
+.collection-open::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+}
+
+.collection-card:has(.collection-open:focus-visible) {
+    outline: 3px solid var(--brand);
+    outline-offset: 3px;
+}
+
+.collection-open:focus-visible {
+    outline: none;
 }
 
 .collection-cover {
@@ -241,7 +258,14 @@ button:disabled {
     color: var(--muted);
 }
 
+.link-btn.remove-collection-btn:hover {
+    color: #ef4444;
+    background: rgba(239,68,68,.1);
+}
+
 .collection-details .remove-collection-btn {
+    position: relative;
+    z-index: 1;
     display: block;
     margin-top: 12px;
     padding: 6px 0;
@@ -367,7 +391,7 @@ button:disabled {
 progress::-webkit-progress-bar { background: var(--border); }
 progress::-webkit-progress-value { background: var(--brand); }
 progress::-moz-progress-bar { background: var(--brand); }
-.back-link { padding: 0 0 10px; }
+.back-link { display: block; padding: 4px 8px; margin: 0 0 8px -8px; }
 
 .empty-library {
     padding: 45px 10px 35px;
@@ -518,6 +542,7 @@ p {
     gap: 4px;
     justify-content: flex-end;
     margin-left: auto;
+    margin-right: -12px; /* Keep the last label flush with the content edge. */
 }
 
 .header-divider {
@@ -578,6 +603,7 @@ p {
     font-weight: 600;
     margin: 0 0 12px;
     color: var(--text);
+    text-align: left;
 }
 
 #allComics {
