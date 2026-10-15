@@ -579,7 +579,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const open = document.createElement('button');
             open.className = 'collection-open';
             open.setAttribute('aria-label', `Open ${library.name}`);
-            open.appendChild(coverElement(library.cover || entries.find(([, data]) => data.thumbnail)?.[1].thumbnail, library.name));
+            // Follow the last-read comic so the cover matches the card's description.
+            open.appendChild(coverElement(latest?.[1].thumbnail || library.cover || entries.find(([, data]) => data.thumbnail)?.[1].thumbnail, library.name));
             const title = document.createElement('h2');
             title.textContent = library.name;
             open.appendChild(title);
@@ -596,9 +597,33 @@ document.addEventListener('DOMContentLoaded', () => {
             stats.className = 'collection-stats';
             stats.textContent = library.needsLegacyScan ? "Connect to count comics" : `${library.comics.length} comics · ${entries.length} started · ${completed} finished`;
             details.appendChild(stats);
-            const lastRead = document.createElement('p');
-            lastRead.className = 'collection-last-read';
-            lastRead.textContent = latest ? `${latest[0]} · ${progressText(latest[1])}\nLast read ${formatTimestamp(latest[1].timestamp)}` : "No reading history";
+            let lastRead;
+            if (latest) {
+                // Sits above the card's stretched open button, like Remove.
+                lastRead = document.createElement('button');
+                lastRead.className = 'collection-last-read continue-btn';
+                lastRead.setAttribute('aria-label', `Continue reading ${latest[0]}`);
+                lastRead.setAttribute('data-collection-action', '');
+                lastRead.addEventListener('click', () => {
+                    showLibrary(library.id);
+                    openLibraryComic(library.id, latest[0]);
+                });
+                const label = document.createElement('span');
+                label.className = 'last-read-label';
+                label.textContent = '▶ Continue reading';
+                const comic = document.createElement('span');
+                comic.className = 'last-read-title';
+                comic.textContent = latest[0].replace(/\.(cbr|cbz|cbt)$/i, '');
+                comic.title = latest[0];
+                const meta = document.createElement('span');
+                meta.className = 'last-read-meta';
+                meta.textContent = `${progressText(latest[1])} · ${formatTimestamp(latest[1].timestamp)}`;
+                lastRead.append(label, comic, meta);
+            } else {
+                lastRead = document.createElement('p');
+                lastRead.className = 'collection-last-read';
+                lastRead.textContent = "No reading history";
+            }
             details.appendChild(lastRead);
             const progress = document.createElement('progress');
             progress.max = library.comics.length || 1;
