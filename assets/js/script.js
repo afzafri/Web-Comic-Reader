@@ -77,14 +77,18 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const name = files[0].webkitRelativePath.split('/')[0];
             const groups = new Map();
+            const loose = new Map();
             for (const file of files) {
                 const parts = file.webkitRelativePath.split('/');
-                if (parts.length < 3) continue; // Ignore loose files in the root.
+                if (parts.length === 2) {
+                    if (isComic(file.name)) loose.set(file.name, file);
+                    continue;
+                }
                 if (!groups.has(parts[1])) groups.set(parts[1], { handle: null, files: new Map() });
                 // Root / collection / comic only; deeper folders are not recursively scanned.
                 if (parts.length === 3 && isComic(file.name)) groups.get(parts[1]).files.set(file.name, file);
             }
-            await acceptRoot(name, groups, null, selection.openAfter);
+            await acceptRoot(name, withLooseGroup(name, groups, { handle: null, files: loose }), null, selection.openAfter);
         } catch (error) {
             notify("Could not scan the root folder. Saved collections and history are unchanged.", "error");
             console.error(error);
@@ -364,15 +368,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function groupsFromHandle(root) {
         const groups = new Map();
+        const loose = [];
         for await (const entry of root.values()) {
-            if (entry.kind !== 'directory') continue;
+            if (entry.kind === 'file') {
+                if (isComic(entry.name)) loose.push(entry.name);
+                continue;
+            }
             const names = [];
             for await (const comic of entry.values()) {
                 if (comic.kind === 'file' && isComic(comic.name)) names.push(comic.name);
             }
             groups.set(entry.name, { handle: entry, names });
         }
-        return groups;
+        return withLooseGroup(root.name, groups, { handle: root, names: loose });
+    }
+
+    // Comics directly inside the root form a collection named after the root, so a
+    // single flat comics folder (the pre-collections layout) keeps working.
+    function withLooseGroup(rootName, groups, loose) {
+        if (!(loose.names?.length || loose.files?.size)) return groups;
+        const name = groups.has(rootName) ? `${rootName} (root folder)` : rootName;
+        // First, so the old single-folder library is matched to it before any child folder.
+        return new Map([[name, loose], ...groups]);
     }
 
     async function matchCollection(name, group, used) {
@@ -450,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
         notify('');
         if (!supportsPersistentAccess) {
             pendingSelection = { openAfter };
-            notify(state.root ? `Select "${state.root.name}" to reconnect all collections.` : "Select a root folder. Each direct child folder becomes a collection.");
+            notify(state.root ? `Select "${state.root.name}" to reconnect all collections.` : "Select a root folder. Its comics, and each folder of comics inside it, become collections.");
             folderInput.click();
             return;
         }
@@ -550,8 +567,8 @@ document.addEventListener('DOMContentLoaded', () => {
         el('emptyLibraries').hidden = state.libraries.length > 0;
         el('emptyLibraries').querySelector('h2').textContent = state.removedFolders.length ? "No saved collections" : state.root ? "No collections found" : "No collections";
         el('emptyLibraries').querySelector('p').textContent = state.root
-            ? `Add folders directly inside "${state.root.name}", then reselect the root.` + (state.removedFolders.length ? " Use “Rediscover removed” to include removed folders." : '')
-            : "Select a root folder. Each direct child folder becomes a collection.";
+            ? `Add comics or folders of comics to "${state.root.name}", then reselect the root.` + (state.removedFolders.length ? " Use “Rediscover removed” to include removed folders." : '')
+            : "Select a root folder. Its comics, and each folder of comics inside it, become collections.";
         for (const library of [...state.libraries].sort((a, b) => Number(b.inRoot) - Number(a.inRoot) || a.name.localeCompare(b.name, 'en', { numeric: true }) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
             const runtime = connection(library.id);
             const entries = historyEntries(library);
