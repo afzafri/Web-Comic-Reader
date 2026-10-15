@@ -42,7 +42,7 @@ body:not(:has(#output[style*="display: block"])) {
 }
 
 .wrap {
-    width: min(600px, 90%);
+    width: min(960px, 92%);
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -51,6 +51,338 @@ body:not(:has(#output[style*="display: block"])) {
     text-align: center;
     position: relative;
 }
+
+[hidden] {
+    display: none !important;
+}
+
+button:focus-visible, a:focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 3px;
+}
+
+button:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.shelf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    text-align: left;
+    margin-bottom: 24px;
+}
+
+.shelf-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.muted {
+    color: var(--muted);
+    font-size: 13px;
+    margin-left: auto;
+}
+
+.action-btn {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.action-btn:hover:not(:disabled) {
+    background: var(--bg);
+    border-color: var(--brand);
+}
+
+.action-btn.primary {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+}
+
+.action-btn.primary:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.browser-notice, .app-message {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    text-align: left;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+}
+
+.app-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    color: var(--text);
+    border-left: 3px solid var(--brand);
+}
+
+.app-message[data-kind="error"] {
+    border-left-color: #dc2626;
+}
+
+.app-message[data-kind="success"] {
+    border-left-color: #16a34a;
+}
+
+.dismiss-message {
+    flex-shrink: 0;
+    margin-left: auto;
+    border: none;
+    border-radius: 4px;
+    padding: 0 6px;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.dismiss-message:hover {
+    background: var(--border);
+}
+
+.root-folder-status {
+    text-align: left;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin: -4px 0 20px;
+    overflow-wrap: anywhere;
+}
+
+.libraries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 18px;
+    text-align: left;
+}
+
+.collection-card {
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card);
+    transition: box-shadow .2s, border-color .2s;
+}
+
+.collection-card:hover {
+    border-color: var(--brand);
+    box-shadow: 0 6px 18px rgba(0,0,0,.06);
+}
+
+.collection-open {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+}
+
+.collection-cover {
+    height: 210px;
+    background: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.collection-cover span {
+    font-size: 64px;
+    font-weight: 600;
+    color: rgba(255,255,255,.65);
+}
+
+.collection-cover img, .recent-comic-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.collection-open h2 {
+    font-size: 17px;
+    margin: 14px 16px 8px;
+    overflow-wrap: anywhere;
+}
+
+.collection-details {
+    padding: 0 16px 16px;
+}
+
+.link-btn.remove-collection-btn {
+    color: var(--muted);
+}
+
+.collection-details .remove-collection-btn {
+    display: block;
+    margin-top: 12px;
+    padding: 6px 0;
+    font-size: 12px;
+}
+
+.collection-dialog {
+    width: min(480px, calc(100% - 32px));
+    max-height: calc(100% - 32px);
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    color: var(--text);
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    overflow-wrap: anywhere;
+}
+
+.collection-dialog:not([open]) {
+    display: none;
+}
+
+.collection-dialog::backdrop {
+    background: rgba(0,0,0,.55);
+}
+
+.dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0,0,0,.55);
+}
+
+.collection-dialog.dialog-fallback {
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    z-index: 10001;
+}
+
+.collection-dialog h2 {
+    margin: 0 0 14px;
+    font-size: 20px;
+}
+
+.collection-dialog p {
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 0 16px;
+}
+
+.collection-dialog .dialog-consequence {
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--bg);
+}
+
+.dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+#confirmCollectionActionBtn {
+    color: var(--text);
+    border-color: var(--muted);
+}
+
+.connection-status {
+    display: inline-block;
+    border-radius: 5px;
+    padding: 3px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    background: var(--bg);
+    color: var(--muted);
+}
+
+.connection-status.connected {
+    color: #15803d;
+    background: rgba(34,197,94,.1);
+}
+
+.connection-status.disconnected {
+    color: #b45309;
+    background: rgba(245,158,11,.12);
+}
+
+@media (prefers-color-scheme: dark) {
+    .connection-status.connected { color: #86efac; }
+    .connection-status.disconnected { color: #fcd34d; }
+}
+
+.collection-stats, .collection-last-read {
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 0 0 10px;
+}
+
+.collection-last-read {
+    min-height: 40px;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.collection-details progress {
+    width: 100%;
+    height: 5px;
+    accent-color: var(--brand);
+    display: block;
+    margin: 12px 0;
+    border: 0;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+progress::-webkit-progress-bar { background: var(--border); }
+progress::-webkit-progress-value { background: var(--brand); }
+progress::-moz-progress-bar { background: var(--brand); }
+.back-link { padding: 0 0 10px; }
+
+.empty-library {
+    padding: 45px 10px 35px;
+}
+
+.empty-library-icon {
+    font-size: 42px;
+    color: var(--brand);
+    margin-bottom: 12px;
+}
+
+.empty-library h2 { font-size: 18px; }
+.empty-library p { font-size: 14px; line-height: 1.7; margin: 0; }
+.empty-comics { padding: 25px 15px; font-size: 14px; line-height: 1.7; }
+.reader-hint { font-size: 13px; margin: 8px 0 20px; }
 
 .collapse-btn {
     position: absolute;
@@ -183,6 +515,9 @@ p {
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    gap: 4px;
+    justify-content: flex-end;
+    margin-left: auto;
 }
 
 .header-divider {
@@ -274,6 +609,10 @@ p {
     border-radius: 8px;
     cursor: pointer;
     transition: all .2s;
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    color: var(--text);
 }
 
 .recent-comic-item:hover {
@@ -290,6 +629,8 @@ p {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    overflow: hidden;
+    color: #fff;
 }
 
 .recent-comic-icon svg {
@@ -524,6 +865,13 @@ footer a:hover {
 }
 
 @media only screen and (max-width: 768px) {
+    .wrap { padding: 24px 18px; }
+    .library-header { align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .library-header-actions { flex-wrap: wrap; max-width: 100%; }
+    .library-header .library-header-left { flex-basis: 100%; }
+    .shelf-toolbar .muted { flex-basis: 100%; margin-left: 0; }
+    .libraries-grid { grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 12px; }
+    .collection-cover { height: 190px; }
     .imgUrl {
         height: 120px;
         padding: 5px;
