@@ -6,6 +6,7 @@ Modern web-based comic book reader for CBR, CBZ, and CBT files with library mana
 
 - **Modern UI** 
 - **Library Mode** - Select your comics folder once, access anytime with persistent folder access
+- **Collections** - Each folder of comics becomes a collection with a cover, comic count and reading progress
 - **Reading Progress** - Automatically saves your last read page and scrolls to it when you reopen
 - **Thumbnail Previews** - Auto-generated cover thumbnails for quick comic recognition
 - **Recently Read** - Quick access to your last 5 comics with progress indicators
@@ -18,9 +19,30 @@ Modern web-based comic book reader for CBR, CBZ, and CBT files with library mana
 ### Library Mode (Recommended)
 1. Click "Select Comics Folder"
 2. Choose your comics folder and grant permission
-3. Browse your library with thumbnails and progress tracking
+3. Open a collection to browse its comics, thumbnails and Recently Read list
 4. Click any comic to read
 5. Your progress is automatically saved
+
+#### Collections
+The folder you select is the root. Comics directly inside it form a collection named after the root, and each folder inside it becomes its own collection:
+
+```
+Comics/                  <- select this folder
+├── One-Shot.cbz         -> collection "Comics"
+├── Saga/                -> collection "Saga"
+│   ├── Saga 01.cbz
+│   └── Saga 02.cbz
+└── Watchmen/            -> collection "Watchmen"
+    └── Watchmen.cbr
+```
+
+Folders deeper than one level are not scanned. To pick up new comics or folders, reselect the root (or reload, if the browser kept permission).
+
+- **Remove collection** forgets a collection's comic list, progress and thumbnails in this browser. Files and folders on disk are never changed or deleted. Removed folders are skipped in future scans until you click **Rediscover removed**, which brings them back without their old history.
+- If you upgrade from the single-folder version, select the same folder as before. Its comics become a collection and your reading history is kept.
+
+#### Reconnecting
+In Chrome, Edge and Opera the root folder is remembered and restored on reload when permission is still granted; otherwise click **Reconnect**. Other browsers can select a folder for the current session only, so after a reload you select the root again. Collections and reading history are kept either way.
 
 ### Quick Read Mode
 1. Click "Quick Read"
@@ -31,9 +53,9 @@ Modern web-based comic book reader for CBR, CBZ, and CBT files with library mana
 
 ### Prerequisites
 - A local web server (Python's `http.server`, Node's `http-server`, etc.)
-- For Library Mode: HTTPS server setup
+- For persistent Library Mode: HTTPS, or `localhost`
 
-### Basic Setup (HTTP - Quick Read Only)
+### Basic Setup (HTTP)
 ```bash
 # Clone or download the repository
 git clone <repository-url>
@@ -53,11 +75,11 @@ npx http-server -p 8000
 php -S localhost:8000
 ```
 
-Visit `http://localhost:8000` in your browser. Only Quick Read mode will work.
+Visit `http://localhost:8000` in your browser. On other HTTP hosts, Library Mode only works for the current session (see Browser Compatibility).
 
-### HTTPS Setup (Required for Library Mode)
+### HTTPS Setup (For Persistent Library Mode)
 
-To enable Library Mode with folder access, you need HTTPS:
+Remembering the folder across reloads needs a secure context: HTTPS, or `localhost`:
 
 **Option 1: Using nginx-proxy (Recommended for local development)**
 1. Set up nginx-proxy with SSL certificates
@@ -95,15 +117,16 @@ npx http-server -p 8000 -S -C localhost+1.pem -K localhost+1-key.pem
 ```
 
 ### Development Notes
-- Reading progress is stored in `localStorage` (key: `comic_reader_userpref`)
-- Folder handles are stored in `IndexedDB` (database: `ComicReaderDB`)
+- Collections, reading progress and thumbnails are stored in `localStorage` (key: `comic_reader_libraries`)
+- The root folder handle is stored in `IndexedDB` (database: `ComicReaderDB`, key: `comicsRoot`)
+- The old `comic_reader_userpref` history and `comicsFolder` handle are read once to migrate single-folder libraries, and left in place
 - Thumbnails are base64-encoded JPEG stored in localStorage
 - Uses vanilla JavaScript (no jQuery required)
 
 ## Requirements
 
-- Modern browser with File System Access API support (Chrome, Edge, Opera)
-- **HTTPS required** for Library Mode (folder access)
+- Chrome, Edge or Opera for a remembered Library Mode folder; other browsers with folder selection get session-only Library Mode
+- **HTTPS (or `localhost`) required** for the remembered folder
 - For Quick Read Mode, HTTP is sufficient
 
 ## Browser Compatibility
@@ -114,12 +137,11 @@ npx http-server -p 8000 -S -C localhost+1.pem -K localhost+1-key.pem
 - Microsoft Edge (desktop)
 - Opera (desktop)
 
-**❌ Not Supported:**
-- Safari (macOS & iOS) - Apple has not implemented this API due to privacy/security concerns
-- Firefox - Partially supported behind flags, not production-ready
-- All iOS browsers (Chrome, Firefox, Edge on iOS) - Use Safari's engine, inherit same limitations
+**⚠️ Session only (folder must be reselected after reload):**
+- Firefox and Safari (desktop), using the browser's folder picker. Collections and reading progress are still saved.
 
-**📝 Note:** Safari and unsupported browsers will automatically fall back to Quick Read mode only. Users can still read comics by uploading individual files, but library features and progress tracking won't be available.
+**❌ No folder selection:**
+- Browsers without any folder picker (e.g. most mobile browsers) can only use Quick Read.
 
 ## Supported Formats
 
@@ -131,7 +153,7 @@ npx http-server -p 8000 -S -C localhost+1.pem -K localhost+1-key.pem
 
 - Pure client-side processing (no server required)
 - Reading progress stored in localStorage
-- Folder handles stored in IndexedDB
+- Root folder handle stored in IndexedDB
 - Thumbnails generated using Canvas API
 - lightGallery for image viewing with zoom and fullscreen
 
